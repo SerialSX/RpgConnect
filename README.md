@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# ⚔️ RPGConnect — O Portal Definitivo do Aventureiro
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+O **RPGConnect** é uma plataforma completa desenvolvida para jogadores de RPG de mesa e entusiastas de board games. O sistema conecta jogadores a locais físicos, permite a formação de grupos via chat em tempo real e oferece um sistema de progressão de personagem (XP) integrado.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Principais Funcionalidades
 
-## React Compiler
+### 📍 Sistema de Mapa (Kingdom Explorer)
+* **Exploração de Locais:** Encontre pontos de interesse categorizados para encontrar-se com comunidades.
+* **Status Dinâmicos:** Indicadores visuais no mapa indicando os locais como "fechados" ou "abertos".
+* **Navegação Imersiva:** Rotas com descrições narrativas baseadas em elementos de RPG.
+* **Integração com XP:** Ganhe experiência ao explorar novos locais e completar missões específicas.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 💬 Sistema de Chat (Taberna Digital)
+A **Taberna Digital** é o coração social do RPGConnect, um chat em tempo real que conecta jogadores para formar grupos e planejar campanhas.
+* **Mensagens Privadas e Grupos:** Histórico isolado por conversa, garantindo privacidade total.
+* **Feedback Visual:** Indicadores de "Usuário digitando" e lista de utilizadores online.
+* **Integração com XP:** Ganhe pontos de experiência por interações sociais, incentivando a comunidade[cite: 1].
+* **Notificações em Tempo Real:** Alertas instantâneos para novas mensagens[cite: 1].
 
-## Expanding the ESLint configuration
+### 🛡️ Perfil e Dashboard (Painel do Herói)
+O **Painel do Herói** é a central de identidade do jogador, onde ele constrói o seu personagem digital e personaliza a sua presença no mundo RPGConnect[cite: 1].
+* **Escolha de Jogos Favoritos:** Seleção de sistemas preferidos (D&D, Pathfinder, etc.) para filtrar conteúdos e conexões[cite: 1].
+* **Classe RPG Própria:** Criação de classes personalizadas com atributos (Força, Inteligência, Carisma) e qualidades especiais[cite: 1].
+* **Sistema de Nível e XP:** Barra de progresso integrada no cabeçalho com badges de nível[cite: 1].
+* **Sincronização Global:** Nível e XP consistentes em todas as telas da plataforma[cite: 1].
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🎨 Design & Experiência (UI/UX)
+* **Tema Arcane Dark:** Paleta de cores baseada em Roxos Profundos, Violetas Arcanos e Acentos Dourados[cite: 1].
+* **Glassmorphism:** Efeitos de transparência e desfoque aplicados em sidebars e cartões[cite: 1].
+* **Consistência Global:** Navegação padronizada com ícones exclusivos em todas as telas[cite: 1].
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🛠️ Stack Tecnológica
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Frontend
+* React.js + Vite[cite: 1]
+* Leaflet (Motor de mapas interativos)[cite: 1]
+* Framer Motion (Animações de interface)[cite: 1]
+* Bootstrap + Vanilla CSS[cite: 1]
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Backend
+* Node.js + Express[cite: 1]
+* Socket.io (Comunicação bidirecional em tempo real)[cite: 1]
+* PostgreSQL (Banco de dados)[cite: 1]
+* Sistema de Portas Inteligente (Scripts automatizados para limpeza das portas `5173` e `8080`)[cite: 1]
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🛠️ Como Iniciar
+
+### Pré-requisitos
+* **Node.js** (versão 16 ou superior)[cite: 1]
+* **PostgreSQL** (versão 12 ou superior)[cite: 1]
+
+### 1. Clonagem e Instalação
+Clone o repositório e instale as dependências do projeto:
+
+### 2. Configuração do Banco de Dados
+* ** Crie um banco de dados chamado RPG no seu PostgreSQL[cite: 1].
+
+* ** Certifique-se de que as credenciais de acesso no arquivo backend/src/config/db.js estão corretas (como usuário, senha e porta)[cite: 1].
+
+
+### 3. Migração do Banco de Dados
+* ** Antes de rodar o sistema, crie as tabelas necessárias executando a migração:
+
+* ** node backend/migrate.js
+
+### 4. Execução do Sistema
+* ** Agora basta iniciar o ambiente de desenvolvimento. O script principal rodará o frontend e o backend simultaneamente:
+
+* ** npm run dev
+
+
