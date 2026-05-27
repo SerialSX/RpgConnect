@@ -1,0 +1,226 @@
+/* src/styles/guia.css */
+
+:root {
+  --primary-purple: #A345F5;
+  --dark-bg: #0d0b21;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --accent-gold: #ffcc00;
+}
+
+.guia-page-body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: radial-gradient(circle at top right, #1a0f3c, #0d0b21 60%);
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.guia-main {
+  padding: 100px 20px 120px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ======= HERO SECTION ======= */
+.guia-header-section {
+  text-align: center;
+  margin-bottom: 80px;
+  animation: fadeInDown 1s ease-out;
+}
+
+.titulo-guia {
+  font-size: 4rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fff 30%, var(--primary-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 30px rgba(163, 69, 245, 0.3);
+  margin-bottom: 25px;
+  letter-spacing: -1px;
+}
+
+.subtitulo-guia {
+  font-size: 1.3rem;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #b8b1e0;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* ======= SECTIONS COMMON ======= */
+.guia-section {
+  margin-bottom: 120px;
+}
+
+.section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: center;
+}
+
+.section-title::after, .section-title::before {
+  content: "";
+  height: 2px;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, var(--primary-purple));
+}
+
+.section-title::after {
+  background: linear-gradient(270deg, transparent, var(--primary-purple));
+}
+
+/* ======= PILLARS CARDS ======= */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.pillar-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 40px 30px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.pillar-card:hover {
+  transform: translateY(-15px);
+  border-color: var(--primary-purple);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(163, 69, 245, 0.2);
+}
+
+.pillar-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.pillar-card h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.pillar-card p {
+  color: #a49fc4;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* ======= SYSTEMS LIST ======= */
+.systems-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.system-item {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px;
+  gap: 25px;
+  transition: 0.3s;
+}
+
+.system-item:hover {
+  background: rgba(163, 69, 245, 0.1);
+  border-color: rgba(163, 69, 245, 0.3);
+}
+
+.system-img-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 15px;
+  background: #1a1535;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.system-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.system-info h4 {
+  font-size: 1.4rem;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.system-info p {
+  color: #938cb3;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ======= CTA DOWNLOAD ======= */
+.download-section {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(163, 69, 245, 0.1), transparent);
+  padding: 60px 40px;
+  border-radius: 30px;
+  border: 1px solid rgba(163, 69, 245, 0.2);
+}
+
+.botao-download {
+  background: linear-gradient(135deg, var(--primary-purple), #8d24ad);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.25rem;
+  padding: 20px 50px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 30px rgba(163, 69, 245, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.botao-download:hover {
+  transform: scale(1.05) translateY(-3px);
+  box-shadow: 0 15px 40px rgba(163, 69, 245, 0.6);
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .titulo-guia { font-size: 3.2rem; }
+}
+
+@media (max-width: 768px) {
+  .titulo-guia { font-size: 2.5rem; }
+  .system-item { flex-direction: column; text-align: center; }
+  .guia-main { padding-top: 60px; }
+}
