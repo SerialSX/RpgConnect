@@ -1,143 +1,258 @@
-/* ===============================
-   LOGIN – RPG CONNECT
-   =============================== */
+/* ==========================================================================
+   RPG CONNECT – LOGIN PAGE (PREMIUM DARK/MYSTICAL THEME)
+   ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+html,
+body {
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  background-color: #070412;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Background com efeito de nebulosa/mistico e orbs de luz */
 .login-page {
   min-height: 100vh;
-  background-color: #170f38;
+  width: 100vw;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(163, 69, 245, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(112, 26, 235, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(139, 44, 245, 0.04) 0%, transparent 60%),
+    #070412;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a345f5;
+  position: relative;
   overflow-x: hidden;
-  /* Mantendo a segurança contra rolagem lateral */
+  margin: 0;
+  padding: 3rem 1.5rem;
+  box-sizing: border-box;
 }
 
-/* No seu arquivo login.css */
+/* Efeito decorativo sutil de fundo */
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(rgba(163, 69, 245, 0.15) 1px, transparent 0),
+    radial-gradient(rgba(163, 69, 245, 0.1) 1px, transparent 0);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  opacity: 0.25;
+  pointer-events: none;
+}
 
-.alert-erro-rpg {
-  /* O fundo (background) com 10% de opacidade */
-  background-color: rgba(255, 0, 0, 0.1);
+.login-page .container {
+  max-width: 480px !important;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  /* A COR DO TEXTO (Aqui é onde você muda o vermelho) */
-  color: #ff0000 !important;
+/* Logo com animação de flutuação */
+.login-page .login_logo {
+  width: 90px !important;
+  height: auto;
+  margin-bottom: 1.5rem !important;
+  filter: drop-shadow(0 8px 16px rgba(163, 69, 245, 0.4));
+  transition: transform 0.3s ease;
+}
 
-  /* A COR DA BORDA */
-  border: 1px solid #ff0000;
+.login-page .login_logo:hover {
+  transform: scale(1.08) rotate(-5deg);
+}
 
-  padding: 10px;
-  border-radius: 8px;
+/* Título e Subtítulo */
+.text_login {
+  text-align: center;
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #dcd7ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem !important;
+  letter-spacing: -0.5px;
+  position: static !important; /* Reseta o posicionamento antigo do css original */
+}
+
+.subtitle_login {
+  font-size: 15px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  text-align: center;
+  margin: 0 auto 2rem auto !important;
+  font-weight: 400;
+  max-width: 320px;
+  line-height: 1.5;
+  position: static !important; /* Reseta o posicionamento antigo */
+}
+
+/* Card Glassmorphic Premium */
+.login-page .card {
+  background: linear-gradient(135deg, rgba(30, 16, 59, 0.6) 0%, rgba(15, 8, 32, 0.8) 100%) !important;
+  border: 1px solid rgba(163, 69, 245, 0.25) !important;
+  border-radius: 24px !important;
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.6), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  width: 100%;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.login-page .card:hover {
+  border-color: rgba(163, 69, 245, 0.4) !important;
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.7), 
+    0 0 30px rgba(163, 69, 245, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.login-page .card-body {
+  padding: 2.5rem 2.25rem !important;
+}
+
+/* Estilização dos Labels */
+.login-page .form-label {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.75px !important;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem !important;
+  display: block;
+}
+
+.login-page .email_label,
+.login-page .senha_label {
+  margin-top: 1.25rem !important;
+  color: unset !important;
+  font-weight: unset !important;
+}
+
+.login-page .email_label {
+  margin-top: 0 !important;
+}
+
+/* Estilização dos Inputs */
+.login-page .form-control {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 0.9rem 1.1rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.login-page .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
   font-size: 0.9rem;
-  font-weight: 700;
+}
+
+.login-page .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(163, 69, 245, 0.6) !important;
+  box-shadow: 
+    0 0 0 1px rgba(163, 69, 245, 0.6),
+    0 0 20px rgba(163, 69, 245, 0.25) !important;
+  outline: none !important;
+}
+
+/* Alerta de erro RPG */
+.alert-erro-rpg {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  padding: 0.85rem !important;
+  border-radius: 12px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 15px;
+  margin-top: 1.25rem !important;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1) !important;
 }
 
-/* Logo */
-.login-page .login_logo {
-  width: 26%;
-  height: auto;
-  margin-bottom: 40px;
-}
-
-/* Título */
-.login-page .login-title {
-  position: relative;
-  bottom: 45px;
-}
-
-/* Subtítulo */
-.login-page .subtitle_login {
-  font-size: 19px;
-  color: rgba(255, 255, 255, 0.73);
-  position: relative;
-  bottom: 12px;
-}
-
-/* Texto inferior */
-.login-page .text-secondary {
-  color: #ffffff !important;
-}
-
-/* Labels */
-.login-page .email_label,
-.login-page .senha_label {
-  margin-top: 15px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-/* Inputs */
-.login-page .form-control {
-  background-color: #ffffff;
-  color: #000000;
-  border: none;
-  border-radius: 6px;
-  padding: 0.65rem 0.75rem;
-}
-
-.login-page .form-control::placeholder {
-  color: #000000;
-  font-size: 0.85rem;
-}
-
-.login-page .form-control:focus {
-  background-color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(163, 69, 245, 0.4);
-}
-
-/* Botão (Atualizado com Loading) */
+/* Botão de login com loading e estados de sucesso */
 .login-page .btn_register {
-  margin-top: 25px;
   width: 100%;
-  height: 48px;
-  border-radius: 10px;
-  background-color: #a345f5;
-  /* Sua paleta */
-  color: #ffffff;
-  font-weight: 600;
-  border: none;
-  font-size: 17px;
-  transition: all 0.3s ease;
+  height: 52px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  background: linear-gradient(135deg, #a345f5 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(163, 69, 245, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  margin-top: 1.5rem !important;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  /* Espaço entre ícone e texto */
-  cursor: pointer;
+}
+
+.login-page .btn_register::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: skewX(-25deg);
+  transition: 0.75s;
+}
+
+.login-page .btn_register:hover:not(:disabled)::after {
+  left: 120%;
 }
 
 .login-page .btn_register:hover:not(:disabled) {
-  background-color: #a345f5;
-  filter: brightness(1.15);
-  /* Apenas um leve brilho no mouse */
-  transform: translateY(-2px);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 30px rgba(163, 69, 245, 0.5) !important;
+  background: linear-gradient(135deg, #b25eff 0%, #8b4aff 100%) !important;
 }
 
-.login-page .btn_register:disabled,
-.login-page .btn_register.btn-success-anim {
-  background-color: #a345f5 !important;
-  opacity: 1 !important;
-  /* Retira o efeito desbotado do navegador */
-  cursor: not-allowed;
+.login-page .btn_register:active:not(:disabled) {
+  transform: translateY(0) !important;
+  box-shadow: 0 4px 12px rgba(163, 69, 245, 0.3) !important;
+}
+
+.login-page .btn_register:disabled {
+  background: #7c3aed !important;
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 
 .btn-success-anim {
-  background-color: #a345f5 !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3) !important;
 }
 
-/* Estado quando está carregando */
-.login-page .btn_register:disabled {
-  background-color: #7c3aed;
-  opacity: 0.8;
-  cursor: not-allowed;
-}
-
-/* Animação do Spinner (FiLoader) */
+/* Spinner e Animação de Rotação */
 .spinner {
   animation: rotate 1s linear infinite;
   display: inline-block;
@@ -147,65 +262,52 @@
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
 }
 
-/* Card */
-.login-page .card.shadow-sm.border-0 {
-  background-color: #311152;
+/* Link de cadastro no Rodapé */
+.login-page .text-secondary {
+  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 0.9rem !important;
+  margin-top: 1.5rem !important;
+  font-weight: 500;
 }
 
-.text_login {
-  position: relative;
-  bottom: 25px;
-  font-size: 26px;
-  font-weight: 700;
-  color: white;
+.login-page .text-secondary a {
+  color: #c48eff !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+  margin-left: 4px;
 }
 
-/* Utilitário para o flex do conteúdo do botão */
-.d-flex {
-  display: flex;
+.login-page .text-secondary a:hover {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(196, 142, 255, 0.5);
 }
 
-.align-items-center {
-  align-items: center;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-
-/* Animação de rotação */
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
+/* Responsividade Avançada */
+@media (max-width: 576px) {
+  .login-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .login-page .card-body {
+    padding: 2rem 1.5rem !important;
   }
 
-  to {
-    transform: rotate(360deg);
+  .text_login {
+    font-size: 1.85rem !important;
   }
-}
+  
+  .subtitle_login {
+    font-size: 14px !important;
+    margin-bottom: 1.5rem !important;
+  }
 
-.spinner {
-  animation: rotate 1s linear infinite;
-  display: inline-block;
-}
-
-.btn_register:disabled {
-  background-color: #7c3aed !important;
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-/* Garante que o conteúdo do botão fique alinhado */
-.btn_register {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  .login-page .form-control {
+    padding: 0.8rem 1rem !important;
+  }
 }

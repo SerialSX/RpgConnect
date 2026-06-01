@@ -175,7 +175,7 @@ export default function Login() {
 
             <p className="text-center text-secondary small mt-3 mb-0">
                Não tem uma conta?{" "}
-               <a href="/signup" className="link-primary text-decoration-none" style={{fontWeight: "bold", color: "#a345f5"}}>
+               <a href="/signup" className="link-primary text-decoration-none">
                  Cadastrar-se
                </a>
             </p>

@@ -220,32 +220,30 @@ export default function Registro() {
                 />
               </div>
 
-              <div className="row g-2 mb-3">
-                <div className="col-sm-6">
-                  <label className="form-label name_label">Senha</label>
-                  <input
-                    type="password"
-                    name="senha"
-                    className="form-control"
-                    placeholder="Mínimo 6 caracteres"
-                    value={form.senha}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="mb-3">
+                <label className="form-label name_label">Senha</label>
+                <input
+                  type="password"
+                  name="senha"
+                  className="form-control"
+                  placeholder="Mínimo 6 caracteres"
+                  value={form.senha}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-                <div className="col-sm-6">
-                  <label className="form-label name_label">Confirmar senha</label>
-                  <input
-                    type="password"
-                    name="confirmacao"
-                    className="form-control"
-                    placeholder="Repita a senha"
-                    value={form.confirmacao}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="form-label name_label">Confirmar senha</label>
+                <input
+                  type="password"
+                  name="confirmacao"
+                  className="form-control"
+                  placeholder="Repita a senha"
+                  value={form.confirmacao}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <button type="submit" className="botao_registrar">

@@ -96,11 +96,9 @@ export default function Home() {
                     </button>
 
                     <div className={`header-right ${isMobileMenuOpen ? "active" : ""}`}>
-                        {!usuario && (
-                            <Link to="/login" className="nav-icon-link" title="Jogar">
-                                <button className="btn-join">Entrar <span className="btn-text-hide">na aventura</span></button>
-                            </Link>
-                        )}
+                        <Link to="/login" className="nav-icon-link" title="Jogar">
+                            <button className="btn-join">ENTRAR NA AVENTURA</button>
+                        </Link>
 
                         <Link to="/mapa" className="nav-icon-link" data-protected="true" title="Mapa">
                             <img src={iconMapa} alt="Mapa" /> <span className="nav-link-text">Mapa</span>
