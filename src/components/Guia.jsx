@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/guia.css";
 import "../styles/home.css";
 
-// Assets
 import logo from "../assets/icone_logo.png";
 import iconMapa from "../assets/icone_mapa.png";
 import iconChat from "../assets/icone_chat.png";
@@ -14,8 +13,22 @@ import magicChar from "../assets/magic_character_photo.png";
 import treasureChest from "../assets/treasure_chest_photo.png";
 import guiaPdf from "../assets/Guia_RPG_Content.pdf";
 
+const ABAS = ["Magias", "Monstros", "Itens Mágicos"];
+
+const ENDPOINT_MAP = {
+  Magias: "spells",
+  Monstros: "creatures",
+  "Itens Mágicos": "magicitems",
+};
+
 const Guia = () => {
-  // Prevent drag and drop
+  const [abaSelecionada, setAbaSelecionada] = useState("Magias");
+  const [busca, setBusca] = useState("");
+  const [resultados, setResultados] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [itemExpandido, setItemExpandido] = useState(null);
+
   useEffect(() => {
     const handleDragOver = (e) => e.preventDefault();
     const handleDrop = (e) => e.preventDefault();
@@ -27,6 +40,50 @@ const Guia = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setResultados([]);
+    setBusca("");
+    setErro("");
+    setItemExpandido(null);
+  }, [abaSelecionada]);
+
+  const buscarNaAPI = async () => {
+    const termo = busca.trim();
+    if (!termo) return;
+
+    setCarregando(true);
+    setErro("");
+    setResultados([]);
+    setItemExpandido(null);
+
+    const endpoint = ENDPOINT_MAP[abaSelecionada];
+
+    try {
+      const res = await fetch(
+        `https://api.open5e.com/v2/${endpoint}/?name__icontains=${encodeURIComponent(termo)}&limit=10`
+      );
+      if (!res.ok) throw new Error("Erro na requisição");
+      const data = await res.json();
+      if (data.results.length === 0) {
+        setErro("Nenhum resultado encontrado. Tente outro termo em inglês.");
+      } else {
+        setResultados(data.results);
+      }
+    } catch {
+      setErro("Não foi possível conectar ao Compêndio. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") buscarNaAPI();
+  };
+
+  const toggleExpandir = (key) => {
+    setItemExpandido((prev) => (prev === key ? null : key));
+  };
+
   const baixarGuia = () => {
     const link = document.createElement("a");
     link.href = guiaPdf;
@@ -36,9 +93,99 @@ const Guia = () => {
     document.body.removeChild(link);
   };
 
+  const renderCampos = (item) => {
+    if (abaSelecionada === "Magias") {
+      return (
+        <div className="compendio-detalhes">
+          {item.level !== undefined && (
+            <span className="compendio-tag">Nível {item.level}</span>
+          )}
+          {item.school && (
+            <span className="compendio-tag">
+              {typeof item.school === "object" ? item.school.name : item.school}
+            </span>
+          )}
+          {item.casting_time && (
+            <p className="compendio-info"><strong>Tempo de Conjuração:</strong> {item.casting_time}</p>
+          )}
+          {item.range && (
+            <p className="compendio-info"><strong>Alcance:</strong> {item.range}</p>
+          )}
+          {item.duration && (
+            <p className="compendio-info"><strong>Duração:</strong> {item.duration}</p>
+          )}
+          {item.desc && (
+            <p className="compendio-desc">{item.desc}</p>
+          )}
+        </div>
+      );
+    }
+  
+    if (abaSelecionada === "Monstros") {
+      return (
+        <div className="compendio-detalhes">
+          {item.type && (
+            <span className="compendio-tag">
+              {typeof item.type === "object" ? item.type.name : item.type}
+            </span>
+          )}
+          {item.size && (
+            <span className="compendio-tag">
+              {typeof item.size === "object" ? item.size.name : item.size}
+            </span>
+          )}
+          {item.challenge_rating_text && (
+            <span className="compendio-tag">CR {item.challenge_rating_text}</span>
+          )}
+          {item.hit_points !== undefined && (
+            <p className="compendio-info"><strong>Pontos de Vida:</strong> {item.hit_points}</p>
+          )}
+          {item.armor_class !== undefined && (
+            <p className="compendio-info"><strong>Classe de Armadura:</strong> {item.armor_class}</p>
+          )}
+          {item.speed && (
+            <p className="compendio-info">
+              <strong>Deslocamento:</strong>{" "}
+              {typeof item.speed === "object"
+                ? Object.entries(item.speed)
+                    .filter(([, v]) => v)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(", ")
+                : item.speed}
+            </p>
+          )}
+        </div>
+      );
+    }
+  
+    if (abaSelecionada === "Itens Mágicos") {
+      return (
+        <div className="compendio-detalhes">
+          {item.type && (
+            <span className="compendio-tag">
+              {typeof item.type === "object" ? item.type.name : item.type}
+            </span>
+          )}
+          {item.rarity && (
+            <span className="compendio-tag">
+              {typeof item.rarity === "object" ? item.rarity.name : item.rarity}
+            </span>
+          )}
+          {item.requires_attunement && (
+            <span className="compendio-tag">Requer Sintonização</span>
+          )}
+          {item.desc && (
+            <p className="compendio-desc">{item.desc}</p>
+          )}
+        </div>
+      );
+    }
+  
+    return null;
+  };
+
   return (
     <div className="guia-page-body min-vh-100">
-      {/* ===== NAVBAR PADRONIZADA ===== */}
       <header className="main-header">
         <div className="container header-container">
           <div className="header-left">
@@ -47,20 +194,16 @@ const Guia = () => {
               <span className="brand-text">RPG CONNECT</span>
             </Link>
           </div>
-
           <div className="header-right">
             <Link to="/" className="nav-icon-link" title="Inicio">
               <button className="btn-join">Inicio</button>
             </Link>
-            
             <Link to="/mapa" className="nav-icon-link" data-protected="true" title="Mapa">
               <img src={iconMapa} alt="Mapa" /> Mapa
             </Link>
-
             <Link to="/chat" className="nav-icon-link" data-protected="true" title="Chat">
               <img src={iconChat} alt="Chat" /> Chat
             </Link>
-
             <Link to="/perfil" className="nav-icon-link" data-protected="true" title="Perfil">
               <img src={iconPerfil} alt="Perfil" /> Perfil
             </Link>
@@ -68,18 +211,15 @@ const Guia = () => {
         </div>
       </header>
 
-      {/* 🔹 CONTEÚDO PRINCIPAL */}
       <main className="guia-main">
-        {/* HERO SECTION */}
         <section className="guia-header-section">
           <h1 className="titulo-guia">Guia dos Reinos</h1>
           <p className="subtitulo-guia">
-            Bem-vindo, aventureiro! Você está prestes a mergulhar no multiverso infinito do RPG de mesa. 
+            Bem-vindo, aventureiro! Você está prestes a mergulhar no multiverso infinito do RPG de mesa.
             Nesta página, compilamos o conhecimento essencial para transformar sua imaginação em lendas épicas.
           </p>
         </section>
 
-        {/* PILLARS SECTION */}
         <section className="guia-section">
           <h2 className="section-title">Os Três Pilares</h2>
           <div className="pillars-grid">
@@ -101,7 +241,6 @@ const Guia = () => {
           </div>
         </section>
 
-        {/* SYSTEMS SECTION */}
         <section className="guia-section">
           <h2 className="section-title">Sistemas Lendários</h2>
           <div className="systems-container">
@@ -129,20 +268,81 @@ const Guia = () => {
           </div>
         </section>
 
-        {/* MASTER TIPS */}
         <section className="guia-section">
-            <h2 className="section-title">Dica de Mestre</h2>
-            <div className="pillar-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <span className="pillar-icon">🐉</span>
-                <h3>"A regra de ouro é se divertir"</h3>
-                <p>O RPG é uma história contada em conjunto. O Mestre não joga CONTRA os jogadores, mas sim COM eles para criar momentos inesquecíveis. Deixe os dados rolarem e aceite o destino que eles traçarem!</p>
-            </div>
+          <h2 className="section-title">Dica de Mestre</h2>
+          <div className="pillar-card" style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <span className="pillar-icon">🐉</span>
+            <h3>"A regra de ouro é se divertir"</h3>
+            <p>O RPG é uma história contada em conjunto. O Mestre não joga CONTRA os jogadores, mas sim COM eles para criar momentos inesquecíveis. Deixe os dados rolarem e aceite o destino que eles traçarem!</p>
+          </div>
         </section>
 
-        {/* DOWNLOAD SECTION */}
+        <section className="guia-section">
+          <h2 className="section-title">Compêndio de Aventureiros</h2>
+          <p className="subtitulo-guia" style={{ textAlign: "center", marginBottom: "40px" }}>
+            Consulte magias, monstros e itens mágicos do D&D 5e em tempo real. Pesquise em inglês para melhores resultados.
+          </p>
+
+          <div className="compendio-abas">
+            {ABAS.map((aba) => (
+              <button
+                key={aba}
+                className={`compendio-aba-btn ${abaSelecionada === aba ? "ativa" : ""}`}
+                onClick={() => setAbaSelecionada(aba)}
+              >
+                {aba}
+              </button>
+            ))}
+          </div>
+
+          <div className="compendio-busca">
+            <input
+              type="text"
+              className="compendio-input"
+              placeholder={`Buscar ${abaSelecionada.toLowerCase()}... ex: ${abaSelecionada === "Magias" ? "fireball" : abaSelecionada === "Monstros" ? "goblin" : "sword"}`}
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <button className="compendio-btn-buscar" onClick={buscarNaAPI}>
+              Buscar
+            </button>
+          </div>
+
+          {carregando && (
+            <div className="compendio-loading">
+              <div className="compendio-spinner"></div>
+              <p>Consultando os tomos arcanos...</p>
+            </div>
+          )}
+
+          {erro && !carregando && (
+            <div className="compendio-erro">{erro}</div>
+          )}
+
+          {!carregando && resultados.length > 0 && (
+            <div className="compendio-lista">
+              {resultados.map((item) => (
+                <div key={item.key} className="compendio-card">
+                  <div
+                    className="compendio-card-header"
+                    onClick={() => toggleExpandir(item.key)}
+                  >
+                    <span className="compendio-nome">{item.name}</span>
+                    <span className="compendio-seta">{itemExpandido === item.key ? "▲" : "▼"}</span>
+                  </div>
+                  {itemExpandido === item.key && renderCampos(item)}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <section className="download-section">
           <h3>Pronto para se tornar uma lenda?</h3>
-          <p style={{marginBottom: '30px', color: '#b8b1e0'}}>Preparamos um material completo em PDF com fichas, regras básicas e um guia de criação de mundo.</p>
+          <p style={{ marginBottom: "30px", color: "#b8b1e0" }}>
+            Preparamos um material completo em PDF com fichas, regras básicas e um guia de criação de mundo.
+          </p>
           <button className="botao-download" onClick={baixarGuia}>
             <span>📘</span> Baixar Manual do Aventureiro (PDF)
           </button>
