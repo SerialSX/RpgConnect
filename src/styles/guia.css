@@ -35,6 +35,7 @@
   font-weight: 900;
   background: linear-gradient(135deg, #fff 30%, var(--primary-purple));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 10px 30px rgba(163, 69, 245, 0.3);
   margin-bottom: 25px;
@@ -223,4 +224,193 @@
   .titulo-guia { font-size: 2.5rem; }
   .system-item { flex-direction: column; text-align: center; }
   .guia-main { padding-top: 60px; }
+}
+
+.compendio-abas {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.compendio-aba-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: #b8b1e0;
+  padding: 10px 28px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: "Poppins", sans-serif;
+}
+
+.compendio-aba-btn:hover {
+  border-color: var(--primary-purple);
+  color: #fff;
+}
+
+.compendio-aba-btn.ativa {
+  background: linear-gradient(135deg, var(--primary-purple), #8d24ad);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(163, 69, 245, 0.4);
+}
+
+.compendio-busca {
+  display: flex;
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto 40px;
+}
+
+.compendio-input {
+  flex: 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: "Poppins", sans-serif;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.compendio-input::placeholder {
+  color: #6b6490;
+}
+
+.compendio-input:focus {
+  border-color: var(--primary-purple);
+}
+
+.compendio-btn-buscar {
+  background: linear-gradient(135deg, var(--primary-purple), #8d24ad);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: "Poppins", sans-serif;
+  white-space: nowrap;
+}
+
+.compendio-btn-buscar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(163, 69, 245, 0.5);
+}
+
+.compendio-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  color: #b8b1e0;
+}
+
+.compendio-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(163, 69, 245, 0.2);
+  border-top-color: var(--primary-purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.compendio-erro {
+  text-align: center;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.compendio-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.compendio-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.compendio-card:hover {
+  border-color: rgba(163, 69, 245, 0.4);
+}
+
+.compendio-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.compendio-nome {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.compendio-seta {
+  color: var(--primary-purple);
+  font-size: 0.85rem;
+}
+
+.compendio-detalhes {
+  padding: 0 24px 20px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.compendio-tag {
+  display: inline-block;
+  background: rgba(163, 69, 245, 0.15);
+  border: 1px solid rgba(163, 69, 245, 0.3);
+  color: var(--primary-purple);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 12px 6px 8px 0;
+}
+
+.compendio-info {
+  color: #b8b1e0;
+  font-size: 0.9rem;
+  margin: 6px 0;
+}
+
+.compendio-info strong {
+  color: #fff;
+}
+
+.compendio-desc {
+  color: #a49fc4;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-top: 12px;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 12px;
 }

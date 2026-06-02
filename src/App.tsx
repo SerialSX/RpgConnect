@@ -3,37 +3,29 @@ import Home from './components/Home';
 import Campanhas from './components/Campanhas';
 import Signup from './components/Signup';
 import Login from './components/Login';
+import Tela_usuario from './components/Tela_usuario';
+import Mapa from './components/Mapa';
+import Chat from './components/Chat';
+import Perfil from './components/Perfil';
+import Guia from './components/Guia';
+import GlobalNotification from './components/GlobalNotification';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/campanhas" element={<Campanhas />} />
-      {/* Telas em Construção */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/mapa" element={
-        <div style={{ padding: '80px 24px', textAlign: 'center', color: '#f5f4f8', background: '#07070a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Explorar o Mapa (Em Construção)</h2>
-          <p style={{ color: '#9c97aa', marginBottom: '30px' }}>Os cartógrafos imperiais estão desenhando as rotas das masmorras.</p>
-          <a href="/" style={{ color: '#d4af37', textDecoration: 'underline' }}>Voltar ao Início</a>
-        </div>
-      } />
-      <Route path="/chat" element={
-        <div style={{ padding: '80px 24px', textAlign: 'center', color: '#f5f4f8', background: '#07070a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Salão do Chat (Em Construção)</h2>
-          <p style={{ color: '#9c97aa', marginBottom: '30px' }}>Os mensageiros estão alimentando os pombos-correio do reino.</p>
-          <a href="/" style={{ color: '#d4af37', textDecoration: 'underline' }}>Voltar ao Início</a>
-        </div>
-      } />
-      <Route path="/perfil" element={
-        <div style={{ padding: '80px 24px', textAlign: 'center', color: '#f5f4f8', background: '#07070a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Perfil de Aventureiro (Em Construção)</h2>
-          <p style={{ color: '#9c97aa', marginBottom: '30px' }}>O mestre de armas está organizando as suas conquistas.</p>
-          <a href="/" style={{ color: '#d4af37', textDecoration: 'underline' }}>Voltar ao Início</a>
-        </div>
-      } />
-    </Routes>
+    <>
+      <GlobalNotification />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/campanhas" element={<Campanhas />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Tela_usuario />} />
+        <Route path="/mapa" element={<Mapa />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/perfil" element={<Perfil />} />
+        <Route path="/guia" element={<Guia />} />
+      </Routes>
+    </>
   );
 }
 
