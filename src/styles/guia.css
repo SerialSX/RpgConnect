@@ -414,3 +414,49 @@
   border-top: 1px solid var(--glass-border);
   padding-top: 12px;
 }
+
+/* BOTÃO DE TRADUÇÃO MINI */
+.btn-traduzir-mini {
+  background: rgba(163, 69, 245, 0.15);
+  border: 1px solid rgba(163, 69, 245, 0.3);
+  color: #bd83f2;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Poppins", sans-serif;
+  margin: 12px 0 8px auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-traduzir-mini:hover {
+  background: var(--primary-purple);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(163, 69, 245, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-traduzir-mini.traduzido {
+  background: rgba(255, 204, 0, 0.1);
+  border: 1px solid rgba(255, 204, 0, 0.3);
+  color: var(--accent-gold);
+}
+
+.btn-traduzir-mini.traduzido:hover {
+  background: var(--accent-gold);
+  color: #0d0b21;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+}
+
+.compendio-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
