@@ -21,6 +21,36 @@ const ENDPOINT_MAP = {
   "Itens Mágicos": "magicitems",
 };
 
+const RPG_DICIONARIO = {
+  "raio": ["ray", "lightning", "bolt", "shocking"],
+  "gelo": ["frost", "ice", "cold", "chill"],
+  "fogo": ["fire", "flame", "burning", "blaze"],
+  "cura": ["cure", "heal", "healing", "restoration"],
+  "espada": ["sword", "blade", "rapier", "scimitar"],
+  "escudo": ["shield", "ward", "protection"],
+  "morte": ["death", "dead", "necromancy", "decay"],
+  "luz": ["light", "daylight", "radiant", "sun"],
+  "sombra": ["shadow", "dark", "darkness", "obscure"],
+  "veneno": ["poison", "toxic", "venom"],
+  "vento": ["wind", "gust", "air", "storm"],
+  "terra": ["earth", "stone", "rock", "clay", "mold"],
+  "agua": ["water", "wave", "tide", "fluid"],
+  "dragao": ["dragon", "drake", "wyrm"],
+  "monstro": ["beast", "creature", "monster", "aberration"],
+  "magia": ["spell", "magic", "arcane"],
+  "arco": ["bow", "arrow", "archery"],
+  "anel": ["ring", "band"],
+  "capa": ["cloak", "cape", "robe"],
+  "bota": ["boot", "boots"],
+  "livro": ["book", "tome", "grimoire"],
+  "pocao": ["potion", "elixir", "vial"],
+  "tempo": ["time", "temporal", "slow", "haste"]
+};
+
+const normalizarTexto = (str) => {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+};
+
 const Guia = () => {
   const [abaSelecionada, setAbaSelecionada] = useState("Magias");
   const [busca, setBusca] = useState("");
@@ -127,33 +157,79 @@ const Guia = () => {
     setItemExpandido(null);
 
     const endpoint = ENDPOINT_MAP[abaSelecionada];
+    const termoNorm = normalizarTexto(termo);
+
+    let termosPesquisa = [];
+    
+    // Check direct dictionary keyword match
+    if (RPG_DICIONARIO[termoNorm]) {
+      termosPesquisa = RPG_DICIONARIO[termoNorm];
+    } else {
+      // Check substring matches in dictionary keywords
+      const keyEncontrada = Object.keys(RPG_DICIONARIO).find(k => termoNorm.includes(k));
+      if (keyEncontrada) {
+        termosPesquisa = RPG_DICIONARIO[keyEncontrada];
+      } else {
+        // Fall back to MyMemory Translation
+        try {
+          const transRes = await fetch(
+            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(termo)}&langpair=pt|en`
+          );
+          if (transRes.ok) {
+            const transData = await transRes.json();
+            if (transData.responseStatus === 200 && transData.responseData && transData.responseData.translatedText) {
+              termosPesquisa = [transData.responseData.translatedText.toLowerCase()];
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao traduzir busca:", e);
+        }
+        
+        if (termosPesquisa.length === 0) {
+          termosPesquisa = [termo.toLowerCase()];
+        }
+      }
+    }
+
+    console.log("English search terms:", termosPesquisa);
 
     try {
-      let termoBusca = termo;
-      try {
-        const transRes = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(termo)}&langpair=pt|en`
-        );
-        if (transRes.ok) {
-          const transData = await transRes.json();
-          if (transData.responseStatus === 200 && transData.responseData && transData.responseData.translatedText) {
-            termoBusca = transData.responseData.translatedText;
-            console.log(`Busca traduzida: "${termo}" -> "${termoBusca}"`);
+      // Query Open5e API for all terms in parallel
+      const promessas = termosPesquisa.map(async (t) => {
+        try {
+          const res = await fetch(
+            `https://api.open5e.com/v2/${endpoint}/?name__icontains=${encodeURIComponent(t)}&limit=15`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            return data.results || [];
+          }
+        } catch (err) {
+          console.error(`Erro ao buscar termo "${t}":`, err);
+        }
+        return [];
+      });
+
+      const todosResultados = await Promise.all(promessas);
+      
+      // Merge results and deduplicate by key
+      const resultadosMesclados = [];
+      const chavesUnicas = new Set();
+
+      for (const lista of todosResultados) {
+        for (const item of lista) {
+          if (!chavesUnicas.has(item.key)) {
+            chavesUnicas.add(item.key);
+            resultadosMesclados.push(item);
           }
         }
-      } catch (e) {
-        console.error("Erro ao traduzir termo de busca:", e);
       }
 
-      const res = await fetch(
-        `https://api.open5e.com/v2/${endpoint}/?name__icontains=${encodeURIComponent(termoBusca)}&limit=10`
-      );
-      if (!res.ok) throw new Error("Erro na requisição");
-      const data = await res.json();
-      if (data.results.length === 0) {
-        setErro("Nenhum resultado encontrado. Tente outro termo.");
+      if (resultadosMesclados.length === 0) {
+        setErro("Nenhum resultado encontrado. Tente pesquisar outros termos relacionados.");
       } else {
-        setResultados(data.results);
+        // Limit to top 15 results
+        setResultados(resultadosMesclados.slice(0, 15));
       }
     } catch {
       setErro("Não foi possível conectar ao Compêndio. Tente novamente.");
