@@ -147,6 +147,18 @@ const Guia = () => {
     }
   };
 
+  const resumirTexto = (texto, limite = 300) => {
+    if (!texto) return "";
+    if (texto.length <= limite) return texto;
+    
+    const corte = texto.substring(0, limite);
+    const lastSpace = corte.lastIndexOf(" ");
+    if (lastSpace > limite * 0.7) {
+      return corte.substring(0, lastSpace) + "... (Resumido)";
+    }
+    return corte + "... (Resumido)";
+  };
+
   const buscarNaAPI = async () => {
     const termo = busca.trim();
     if (!termo) return;
@@ -259,7 +271,8 @@ const Guia = () => {
       
       let descTraduzida = "";
       if (item.desc) {
-        descTraduzida = await traduzirTextoLongo(item.desc);
+        const descResumida = resumirTexto(item.desc);
+        descTraduzida = await traduzirTextoLongo(descResumida);
       }
 
       let castingTimeTraduzido = "";
