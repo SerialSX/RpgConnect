@@ -57,12 +57,64 @@ const Guia = () => {
       );
       if (res.ok) {
         const data = await res.json();
-        return data.responseData?.translatedText || texto;
+        if (data.responseStatus === 200) {
+          return data.responseData?.translatedText || texto;
+        } else {
+          console.warn("MyMemory Translation Warning:", data.responseDetails);
+        }
       }
     } catch (e) {
       console.error("Erro na tradução:", e);
     }
     return texto;
+  };
+
+  const traduzirTextoLongo = async (texto, de = "en", para = "pt") => {
+    if (!texto) return "";
+    if (texto.length <= 400) {
+      return await traduzirTexto(texto, de, para);
+    }
+
+    const chunks = [];
+    let currentChunk = "";
+    
+    // Split by punctuation marks followed by spaces
+    const sentences = texto.split(/([.!?]\s+)/);
+    
+    for (let i = 0; i < sentences.length; i++) {
+      const part = sentences[i];
+      if ((currentChunk + part).length > 400) {
+        if (currentChunk.trim()) {
+          chunks.push(currentChunk.trim());
+        }
+        currentChunk = part;
+      } else {
+        currentChunk += part;
+      }
+    }
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+
+    const finalChunks = [];
+    for (const chunk of chunks) {
+      if (chunk.length <= 400) {
+        finalChunks.push(chunk);
+      } else {
+        for (let i = 0; i < chunk.length; i += 400) {
+          finalChunks.push(chunk.substring(i, i + 400));
+        }
+      }
+    }
+
+    try {
+      const promises = finalChunks.map(c => traduzirTexto(c, de, para));
+      const translatedParts = await Promise.all(promises);
+      return translatedParts.join(" ");
+    } catch (e) {
+      console.error("Erro ao traduzir texto longo:", e);
+      return texto;
+    }
   };
 
   const buscarNaAPI = async () => {
@@ -84,7 +136,7 @@ const Guia = () => {
         );
         if (transRes.ok) {
           const transData = await transRes.json();
-          if (transData.responseData && transData.responseData.translatedText) {
+          if (transData.responseStatus === 200 && transData.responseData && transData.responseData.translatedText) {
             termoBusca = transData.responseData.translatedText;
             console.log(`Busca traduzida: "${termo}" -> "${termoBusca}"`);
           }
@@ -131,7 +183,7 @@ const Guia = () => {
       
       let descTraduzida = "";
       if (item.desc) {
-        descTraduzida = await traduzirTexto(item.desc);
+        descTraduzida = await traduzirTextoLongo(item.desc);
       }
 
       let castingTimeTraduzido = "";
