@@ -28,6 +28,8 @@ const Guia = () => {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
   const [itemExpandido, setItemExpandido] = useState(null);
+  const [traducoes, setTraducoes] = useState({});
+  const [traduzindoKey, setTraduzindoKey] = useState(null);
 
   useEffect(() => {
     const handleDragOver = (e) => e.preventDefault();
@@ -47,6 +49,22 @@ const Guia = () => {
     setItemExpandido(null);
   }, [abaSelecionada]);
 
+  const traduzirTexto = async (texto, de = "en", para = "pt") => {
+    if (!texto) return "";
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(texto)}&langpair=${de}|${para}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        return data.responseData?.translatedText || texto;
+      }
+    } catch (e) {
+      console.error("Erro na tradução:", e);
+    }
+    return texto;
+  };
+
   const buscarNaAPI = async () => {
     const termo = busca.trim();
     if (!termo) return;
@@ -59,13 +77,29 @@ const Guia = () => {
     const endpoint = ENDPOINT_MAP[abaSelecionada];
 
     try {
+      let termoBusca = termo;
+      try {
+        const transRes = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(termo)}&langpair=pt|en`
+        );
+        if (transRes.ok) {
+          const transData = await transRes.json();
+          if (transData.responseData && transData.responseData.translatedText) {
+            termoBusca = transData.responseData.translatedText;
+            console.log(`Busca traduzida: "${termo}" -> "${termoBusca}"`);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao traduzir termo de busca:", e);
+      }
+
       const res = await fetch(
-        `https://api.open5e.com/v2/${endpoint}/?name__icontains=${encodeURIComponent(termo)}&limit=10`
+        `https://api.open5e.com/v2/${endpoint}/?name__icontains=${encodeURIComponent(termoBusca)}&limit=10`
       );
       if (!res.ok) throw new Error("Erro na requisição");
       const data = await res.json();
       if (data.results.length === 0) {
-        setErro("Nenhum resultado encontrado. Tente outro termo em inglês.");
+        setErro("Nenhum resultado encontrado. Tente outro termo.");
       } else {
         setResultados(data.results);
       }
@@ -80,8 +114,77 @@ const Guia = () => {
     if (e.key === "Enter") buscarNaAPI();
   };
 
-  const toggleExpandir = (key) => {
-    setItemExpandido((prev) => (prev === key ? null : key));
+  const toggleExpandir = async (item) => {
+    const key = item.key;
+    if (itemExpandido === key) {
+      setItemExpandido(null);
+      return;
+    }
+
+    setItemExpandido(key);
+
+    if (traducoes[key]) return;
+
+    setTraduzindoKey(key);
+    try {
+      const nomeTraduzido = await traduzirTexto(item.name);
+      
+      let descTraduzida = "";
+      if (item.desc) {
+        descTraduzida = await traduzirTexto(item.desc);
+      }
+
+      let castingTimeTraduzido = "";
+      if (item.casting_time) {
+        castingTimeTraduzido = await traduzirTexto(item.casting_time);
+      }
+
+      let durationTraduzida = "";
+      if (item.duration) {
+        durationTraduzida = await traduzirTexto(item.duration);
+      }
+
+      let rangeTraduzido = "";
+      if (item.range) {
+        rangeTraduzido = await traduzirTexto(item.range);
+      }
+
+      let typeTraduzido = "";
+      const rawType = typeof item.type === "object" ? item.type.name : item.type;
+      if (rawType) {
+        typeTraduzido = await traduzirTexto(rawType);
+      }
+
+      let sizeTraduzido = "";
+      const rawSize = typeof item.size === "object" ? item.size.name : item.size;
+      if (rawSize) {
+        sizeTraduzido = await traduzirTexto(rawSize);
+      }
+
+      let rarityTraduzido = "";
+      const rawRarity = typeof item.rarity === "object" ? item.rarity.name : item.rarity;
+      if (rawRarity) {
+        rarityTraduzido = await traduzirTexto(rawRarity);
+      }
+
+      setTraducoes(prev => ({
+        ...prev,
+        [key]: {
+          name: nomeTraduzido,
+          desc: descTraduzida,
+          casting_time: castingTimeTraduzido,
+          duration: durationTraduzida,
+          range: rangeTraduzido,
+          type: typeTraduzido,
+          size: sizeTraduzido,
+          rarity: rarityTraduzido
+        }
+      }));
+    } catch (err) {
+      console.error("Erro ao traduzir item:", err);
+    } finally {
+      setTraduzindoKey(null);
+    }
   };
 
   const baixarGuia = () => {
@@ -94,9 +197,23 @@ const Guia = () => {
   };
 
   const renderCampos = (item) => {
+    const traduzido = traducoes[item.key] || {};
+    const desc = traduzido.desc || item.desc;
+    const casting_time = traduzido.casting_time || item.casting_time;
+    const duration = traduzido.duration || item.duration;
+    const range = traduzido.range || item.range;
+    const type = traduzido.type || (typeof item.type === "object" ? item.type.name : item.type);
+    const size = traduzido.size || (typeof item.size === "object" ? item.size.name : item.size);
+    const rarity = traduzido.rarity || (typeof item.rarity === "object" ? item.rarity.name : item.rarity);
+
     if (abaSelecionada === "Magias") {
       return (
         <div className="compendio-detalhes">
+          {traduzindoKey === item.key && (
+            <p className="compendio-info" style={{ color: '#bd83f2', fontStyle: 'italic' }}>
+              ✨ Traduzindo grimório para português...
+            </p>
+          )}
           {item.level !== undefined && (
             <span className="compendio-tag">Nível {item.level}</span>
           )}
@@ -105,17 +222,17 @@ const Guia = () => {
               {typeof item.school === "object" ? item.school.name : item.school}
             </span>
           )}
-          {item.casting_time && (
-            <p className="compendio-info"><strong>Tempo de Conjuração:</strong> {item.casting_time}</p>
+          {casting_time && (
+            <p className="compendio-info"><strong>Tempo de Conjuração:</strong> {casting_time}</p>
           )}
-          {item.range && (
-            <p className="compendio-info"><strong>Alcance:</strong> {item.range}</p>
+          {range && (
+            <p className="compendio-info"><strong>Alcance:</strong> {range}</p>
           )}
-          {item.duration && (
-            <p className="compendio-info"><strong>Duração:</strong> {item.duration}</p>
+          {duration && (
+            <p className="compendio-info"><strong>Duração:</strong> {duration}</p>
           )}
-          {item.desc && (
-            <p className="compendio-desc">{item.desc}</p>
+          {desc && (
+            <p className="compendio-desc">{desc}</p>
           )}
         </div>
       );
@@ -124,15 +241,16 @@ const Guia = () => {
     if (abaSelecionada === "Monstros") {
       return (
         <div className="compendio-detalhes">
-          {item.type && (
-            <span className="compendio-tag">
-              {typeof item.type === "object" ? item.type.name : item.type}
-            </span>
+          {traduzindoKey === item.key && (
+            <p className="compendio-info" style={{ color: '#bd83f2', fontStyle: 'italic' }}>
+              ✨ Traduzindo grimório para português...
+            </p>
           )}
-          {item.size && (
-            <span className="compendio-tag">
-              {typeof item.size === "object" ? item.size.name : item.size}
-            </span>
+          {type && (
+            <span className="compendio-tag">{type}</span>
+          )}
+          {size && (
+            <span className="compendio-tag">{size}</span>
           )}
           {item.challenge_rating_text && (
             <span className="compendio-tag">CR {item.challenge_rating_text}</span>
@@ -161,21 +279,22 @@ const Guia = () => {
     if (abaSelecionada === "Itens Mágicos") {
       return (
         <div className="compendio-detalhes">
-          {item.type && (
-            <span className="compendio-tag">
-              {typeof item.type === "object" ? item.type.name : item.type}
-            </span>
+          {traduzindoKey === item.key && (
+            <p className="compendio-info" style={{ color: '#bd83f2', fontStyle: 'italic' }}>
+              ✨ Traduzindo grimório para português...
+            </p>
           )}
-          {item.rarity && (
-            <span className="compendio-tag">
-              {typeof item.rarity === "object" ? item.rarity.name : item.rarity}
-            </span>
+          {type && (
+            <span className="compendio-tag">{type}</span>
+          )}
+          {rarity && (
+            <span className="compendio-tag">{rarity}</span>
           )}
           {item.requires_attunement && (
             <span className="compendio-tag">Requer Sintonização</span>
           )}
-          {item.desc && (
-            <p className="compendio-desc">{item.desc}</p>
+          {desc && (
+            <p className="compendio-desc">{desc}</p>
           )}
         </div>
       );
@@ -326,9 +445,12 @@ const Guia = () => {
                 <div key={item.key} className="compendio-card">
                   <div
                     className="compendio-card-header"
-                    onClick={() => toggleExpandir(item.key)}
+                    onClick={() => toggleExpandir(item)}
                   >
-                    <span className="compendio-nome">{item.name}</span>
+                    <span className="compendio-nome">
+                      {traducoes[item.key]?.name || item.name}
+                      {traducoes[item.key]?.name && traducoes[item.key]?.name !== item.name ? ` (${item.name})` : ""}
+                    </span>
                     <span className="compendio-seta">{itemExpandido === item.key ? "▲" : "▼"}</span>
                   </div>
                   {itemExpandido === item.key && renderCampos(item)}
