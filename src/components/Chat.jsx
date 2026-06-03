@@ -207,7 +207,12 @@ export default function ChatPage() {
 
     const fetchOnlineUsers = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioLogado.id}`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioLogado.id}`, {
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          }
+        });
         if (!res.ok) throw new Error("Erro na requisição");
         const data = await res.json();
 
@@ -311,7 +316,12 @@ export default function ChatPage() {
       }
 
       // Sincroniza com o backend como um "backup" ou base histórica
-      fetch(`http://localhost:8080/usuarios/historico/${usuarioLogado.id}/${usuarioSelecionado.id}`)
+      const token = localStorage.getItem("token");
+      fetch(`http://localhost:8080/usuarios/historico/${usuarioLogado.id}/${usuarioSelecionado.id}`, {
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        }
+      })
         .then(res => res.json())
         .then(dados => {
           if (Array.isArray(dados) && dados.length > 0) {
@@ -410,6 +420,61 @@ export default function ChatPage() {
     // Para de digitar
     socket.current.emit("parou_digitar", { remetenteId: usuarioLogado.id, destinatarioId: usuarioSelecionado.id });
     if(typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+  };
+
+  const rolarDado = async (lados) => {
+    if (!usuarioSelecionado) return;
+    try {
+      const res = await fetch(`http://localhost:8081/rolar/${lados}`);
+      if (res.ok) {
+        const data = await res.json();
+        const textoMsg = `🎲 Rotei um d${lados}: obtive **${data.resultado}**! ${data.mensagem ? `(${data.mensagem})` : ""}`;
+        
+        const idUnico = self.crypto ? self.crypto.randomUUID() : Date.now().toString();
+        const chatMessage = {
+          id: idUnico,
+          remetenteId: Number(usuarioLogado.id),
+          remetenteNome: usuarioLogado.nome,
+          destinatarioId: Number(usuarioSelecionado.id),
+          conteudo: textoMsg,
+          timestamp: new Date().toISOString()
+        };
+        
+        const outroIdUnico = getParticipantKey(usuarioSelecionado);
+        const chaveHistorico = `chat_history_${meuIdUnico}_${outroIdUnico}`;
+        setMensagens((prev) => {
+          const novaLista = [...prev, chatMessage];
+          localStorage.setItem(chaveHistorico, JSON.stringify(novaLista));
+          return novaLista;
+        });
+
+        if (socket.current?.connected) {
+          socket.current.emit("enviar_mensagem", chatMessage);
+        }
+
+        addXP(10);
+
+        setUsuariosOnline((prev) => {
+          const index = prev.findIndex((u) => Number(u.id) === Number(usuarioSelecionado.id));
+          if (index !== -1) {
+            const usuarioAtualizado = { 
+              ...prev[index], 
+              ultima_mensagem: chatMessage.conteudo,
+              ultimo_horario: chatMessage.timestamp
+            };
+            const novaLista = [...prev];
+            novaLista.splice(index, 1);
+            return [usuarioAtualizado, ...novaLista];
+          }
+          return prev;
+        });
+      } else {
+        alert("Erro ao rolar dados no servidor auxiliar.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("O servidor auxiliar de dados está offline.");
+    }
   };
 
   const handleChangeInput = (e) => {
@@ -691,6 +756,32 @@ export default function ChatPage() {
                      <div style={{marginLeft: '8px'}}>{usuarioSelecionado.nome} está digitando...</div>
                   </div>
                 )}
+
+                <div className="dice-roll-tray" style={{ display: "flex", gap: "10px", padding: "10px 20px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.05)", alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "13px", color: "#bd83f2", fontWeight: "bold" }}>Rolar Dado:</span>
+                  {[4, 6, 8, 10, 12, 20, 100].map(lados => (
+                    <button 
+                      key={lados} 
+                      onClick={() => rolarDado(lados)} 
+                      type="button" 
+                      style={{ 
+                        background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)", 
+                        border: "none", 
+                        color: "white", 
+                        borderRadius: "8px", 
+                        padding: "4px 10px", 
+                        fontSize: "12px", 
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        transition: "transform 0.2s"
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.08)"}
+                      onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    >
+                      d{lados}
+                    </button>
+                  ))}
+                </div>
 
                 <form className="chat-input-area" onSubmit={handleSendMessage}>
                   <input 

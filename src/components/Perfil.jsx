@@ -93,10 +93,13 @@ export default function Perfil() {
         };
         localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
 
-        // 🔥 NOVA PARTE: Sincronizar com o Servidor para que outros usuários vejam!
+        const token = localStorage.getItem("token");
         fetch("http://localhost:8080/usuarios/perfil-update", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          },
           body: JSON.stringify({
             id: usuarioObj.id,
             nome: nome,

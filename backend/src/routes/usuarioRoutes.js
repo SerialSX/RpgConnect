@@ -1,5 +1,7 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 export default function createUserRoutes(io) {
     const router = express.Router();
@@ -17,7 +19,13 @@ export default function createUserRoutes(io) {
             io.emit("novo_usuario", { id: novoUsuario.id, nome: novoUsuario.nome });
             console.log(`🆕 Novo usuário cadastrado: ${novoUsuario.nome} (ID: ${novoUsuario.id})`);
 
-            res.status(201).json(novoUsuario);
+            const token = jwt.sign(
+                { id: novoUsuario.id, nome: novoUsuario.nome, email: novoUsuario.email },
+                process.env.JWT_SECRET || "rpgconnect_super_secret_key_2026",
+                { expiresIn: "24h" }
+            );
+
+            res.status(201).json({ usuario: novoUsuario, token });
         } catch (error) {
             console.error("Erro no cadastro:", error);
             res.status(500).json({ error: "Erro ao cadastrar. O e-mail pode já existir." });
@@ -34,7 +42,13 @@ export default function createUserRoutes(io) {
             );
 
             if (result.rows.length > 0) {
-                res.json(result.rows[0]);
+                const usuario = result.rows[0];
+                const token = jwt.sign(
+                    { id: usuario.id, nome: usuario.nome, email: usuario.email },
+                    process.env.JWT_SECRET || "rpgconnect_super_secret_key_2026",
+                    { expiresIn: "24h" }
+                );
+                res.json({ usuario, token });
             } else {
                 res.status(401).json({ error: "E-mail ou senha incorretos." });
             }
@@ -45,7 +59,7 @@ export default function createUserRoutes(io) {
     });
 
 
-    router.get("/usuarios-online", async (req, res) => {
+    router.get("/usuarios-online", authMiddleware, async (req, res) => {
         try {
             const { usuarioId } = req.query;
             const result = await db.query(
@@ -69,7 +83,7 @@ export default function createUserRoutes(io) {
     });
 
 
-    router.get("/historico/:meuId/:outroId", async (req, res) => {
+    router.get("/historico/:meuId/:outroId", authMiddleware, async (req, res) => {
         try {
             const { meuId, outroId } = req.params;
             const result = await db.query(
@@ -87,7 +101,7 @@ export default function createUserRoutes(io) {
     });
 
 
-    router.put("/perfil-update", async (req, res) => {
+    router.put("/perfil-update", authMiddleware, async (req, res) => {
         const { id, nome, bio, jogos, avatar } = req.body;
         try {
             await db.query(
@@ -101,7 +115,7 @@ export default function createUserRoutes(io) {
         }
     });
 
-    router.post("/traduzir", async (req, res) => {
+    router.post("/traduzir", authMiddleware, async (req, res) => {
         const { texto, de, para } = req.body;
         try {
             const sourceLang = de || "en";

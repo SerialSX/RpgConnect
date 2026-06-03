@@ -126,6 +126,7 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
     if (dicionario[tClean]) return dicionario[tClean];
     
     try {
+        const token = localStorage.getItem("token");
         const res = await fetch("http://localhost:8080/usuarios/traduzir", {
             method: "POST",
             body: JSON.stringify({
@@ -133,7 +134,10 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
                 de,
                 para
             }),
-            headers: { "Content-Type": "application/json" }
+            headers: { 
+                "Content-Type": "application/json",
+                ...(token ? { "Authorization": `Bearer ${token}` } : {})
+            }
         });
         if (res.ok) {
             const data = await res.json();

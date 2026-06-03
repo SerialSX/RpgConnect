@@ -62,6 +62,9 @@ export default function Login() {
           // SUCESSO
           setStatus("success");
           localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario || data));
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
 
           // Tempo para exibir a mensagem de "Logado com sucesso!"
           setTimeout(() => {

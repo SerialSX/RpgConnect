@@ -92,9 +92,33 @@ app.use("/usuarios", createUserRoutes(io));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // =====================================================
+// BATIMENTO CARDÍACO DE INTEGRAÇÃO (Ping para o RpgConnect-Auxiliar)
+// =====================================================
+const enviarPingAuxiliar = async () => {
+    try {
+        const response = await fetch("http://localhost:8081/ping", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: "Online" })
+        });
+        if (response.ok) {
+            console.log("📡 Ping de integração enviado com sucesso para o RpgConnect-Auxiliar.");
+        }
+    } catch (err) {
+        console.warn("⚠️ Não foi possível comunicar com o RpgConnect-Auxiliar (Serviço Auxiliar desligado).");
+    }
+};
+
+// =====================================================
 // INICIAR SERVIDOR
 // =====================================================
 const PORT = 8080;
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 SERVIDOR RODANDO NA PORTA ${PORT}`);
+    
+    // Envia o primeiro ping e agenda os próximos a cada 30 segundos
+    enviarPingAuxiliar();
+    setInterval(enviarPingAuxiliar, 30000);
 });

@@ -65,7 +65,12 @@ const NotificationSystem = () => {
     const checkUnread = async () => {
       if (!usuarioObj?.id) return;
       try {
-        const response = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`);
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`, {
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          }
+        });
         const usuarios = await response.json();
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
         

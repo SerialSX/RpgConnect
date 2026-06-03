@@ -126,6 +126,7 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
     if (dicionario[tClean]) return dicionario[tClean];
     
     try {
+        const token = localStorage.getItem("token");
         const res = await fetch("http://localhost:8080/usuarios/traduzir", {
             method: "POST",
             body: JSON.stringify({
@@ -133,7 +134,10 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
                 de,
                 para
             }),
-            headers: { "Content-Type": "application/json" }
+            headers: { 
+                "Content-Type": "application/json",
+                ...(token ? { "Authorization": `Bearer ${token}` } : {})
+            }
         });
         if (res.ok) {
             const data = await res.json();
@@ -305,6 +309,42 @@ const TelaUsuario = () => {
     }
 
     const [levelInfo, setLevelInfo] = useState(getLevelInfo());
+    const [dicaRpg, setDicaRpg] = useState("");
+    const [statusServico, setStatusServico] = useState({ auxiliar: "Verificando...", principal: "Verificando..." });
+
+    useEffect(() => {
+        const carregarDadosAuxiliares = async () => {
+            try {
+                const resDica = await fetch("http://localhost:8081/dica");
+                if (resDica.ok) {
+                    const dataDica = await resDica.json();
+                    setDicaRpg(dataDica.dica);
+                }
+            } catch (err) {
+                console.warn("Serviço auxiliar de dicas inacessível localmente:", err.message);
+                setDicaRpg("Não foi possível carregar a dica de RPG (Serviço Auxiliar Offline).");
+            }
+
+            try {
+                const resStatus = await fetch("http://localhost:8081/status");
+                if (resStatus.ok) {
+                    const dataStatus = await resStatus.json();
+                    setStatusServico({
+                        auxiliar: dataStatus.servico_auxiliar,
+                        principal: dataStatus.servidor_principal
+                    });
+                } else {
+                    setStatusServico({ auxiliar: "Offline", principal: "Offline" });
+                }
+            } catch (err) {
+                setStatusServico({ auxiliar: "Offline", principal: "Offline" });
+            }
+        };
+
+        carregarDadosAuxiliares();
+        const interval = setInterval(carregarDadosAuxiliares, 15000); // Poll every 15 seconds
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const handleXP = () => setLevelInfo(getLevelInfo());
@@ -382,10 +422,49 @@ const TelaUsuario = () => {
 
             <main className="container mt-5 pt-3">
                 <HeaderUsuario nome={nomeParaExibir} avatar={avatarParaExibir} levelInfo={levelInfo} />
+                <ServicosAuxiliares dica={dicaRpg} status={statusServico} />
                 <AcessoRapido />
                 <ConteudoUsuario levelInfo={levelInfo} />
             </main>
         </div>
+    );
+};
+
+const ServicosAuxiliares = ({ dica, status }) => {
+    const isAuxOnline = status.auxiliar === "Online";
+    const isPrincipalOnline = status.principal === "Online";
+
+    return (
+        <section className="mb-5">
+            <div className="aux-services-panel p-4">
+                <div className="row align-items-center">
+                    <div className="col-lg-8 mb-4 mb-lg-0">
+                        <div className="tip-title-box">
+                            <span>🔮 Dica de RPG do Dia (Serviço Integrado)</span>
+                        </div>
+                        <p className="tip-text-content">
+                            {dica || "Buscando sabedoria nas runas do servidor auxiliar..."}
+                        </p>
+                    </div>
+                    <div className="col-lg-4 text-lg-end d-flex flex-column gap-2 align-items-lg-end align-items-start">
+                        <div className="d-flex align-items-center gap-2 w-100 justify-content-lg-end">
+                            <span className="text-white-50 small font-weight-bold">Serviço Auxiliar (Porta 8081):</span>
+                            <span className={`status-badge-indicator ${isAuxOnline ? "online" : "offline"}`}>
+                                <span className={`status-dot ${isAuxOnline ? "online" : "offline"}`}></span>
+                                {status.auxiliar}
+                            </span>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 w-100 justify-content-lg-end">
+                            <span className="text-white-50 small font-weight-bold">Servidor Principal (Porta 8080):</span>
+                            <span className={`status-badge-indicator ${isPrincipalOnline ? "online" : "offline"}`}>
+                                <span className={`status-dot ${isPrincipalOnline ? "online" : "offline"}`}></span>
+                                {status.principal}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 };
 

@@ -49,6 +49,19 @@ O **Painel do Herói** é a central de identidade do jogador, onde ele constrói
 * PostgreSQL (Banco de dados)[cite: 1]
 * Sistema de Portas Inteligente (Scripts automatizados para limpeza das portas `5173` e `8080`)[cite: 1]
 
+## 🔗 Integração Multissistemas (Requisito da Disciplina)
+
+O projeto está dividido em **dois sistemas distintos** rodando de forma independente e se comunicando via requisições HTTP REST e troca de dados estruturados em JSON:
+
+1. **RpgConnect (Sistema Principal — Portas 8080 e 5173):** Aplicação principal em React e Node.js que gerencia a interface do usuário, chat WebSockets e persistência no banco de dados PostgreSQL.
+2. **RpgConnect-Auxiliar (Sistema Secundário — Porta 8081):** Microsserviço complementar responsável por rolagens de dados justas (Dice Roller), dicas dinâmicas de RPG e auditoria de status da integração.
+
+### Mecanismos de Integração Implementados:
+* **Heartbeat de Status (Batimento Cardíaco):** Ao iniciar, o servidor principal do RpgConnect (`8080`) envia um ping HTTP POST para o microsserviço auxiliar (`8081`). O microsserviço rastreia esse ping em tempo real: se o servidor principal parar de enviar sinais por mais de 90 segundos, o status da integração muda para `Offline`.
+* **Painel de Monitoramento:** O Dashboard principal do frontend consome o status de ambos os servidores e exibe indicadores luminosos ("Serviço Auxiliar: ONLINE" e "Servidor Principal: ONLINE"), demonstrando a troca segura de status de integridade.
+* **Dica de RPG do Dia:** O Dashboard consome dinamicamente o endpoint `/dica` do microsserviço auxiliar a cada carregamento, exibindo um conselho de RPG diferente aos jogadores.
+* **Rolagem de Dados via API:** No Chat, os botões de rolagem de dados (`d4`, `d6`, `d8`, etc.) fazem requisições HTTP GET ao microsserviço de dados auxiliar, que sorteia os números e responde com o resultado e mensagens temáticas (como acertos críticos). O resultado é injetado diretamente no chat em tempo real via WebSockets.
+
 ---
 
 ## 🛠️ Como Iniciar
@@ -72,8 +85,28 @@ Clone o repositório e instale as dependências do projeto:
 * ** node backend/migrate.js
 
 ### 4. Execução do Sistema
-* ** Agora basta iniciar o ambiente de desenvolvimento. O script principal rodará o frontend e o backend simultaneamente:
 
-* ** npm run dev
+Para rodar todo o ecossistema de forma integrada, inicie os serviços em três terminais separados:
+
+* **Terminal 1 (Interface Frontend):**
+  ```bash
+  cd RpgConnect
+  npm run dev
+  ```
+  *(Disponível em `http://localhost:5173`)*
+
+* **Terminal 2 (Servidor Backend Principal):**
+  ```bash
+  cd RpgConnect/backend
+  npm run dev
+  ```
+  *(Disponível em `http://localhost:8080`)*
+
+* **Terminal 3 (Serviço Auxiliar):**
+  ```bash
+  cd RpgConnect-Auxiliar
+  npm run dev
+  ```
+  *(Disponível em `http://localhost:8081`)*
 
 
