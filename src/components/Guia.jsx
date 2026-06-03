@@ -34,16 +34,18 @@ const Guia = () => {
   const traduzirTexto = async (texto, de = "en", para = "pt") => {
     if (!texto) return "";
     try {
-      const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(texto)}&langpair=${de}|${para}`
-      );
+      const res = await fetch("http://localhost:8080/usuarios/traduzir", {
+        method: "POST",
+        body: JSON.stringify({
+          texto,
+          de,
+          para
+        }),
+        headers: { "Content-Type": "application/json" }
+      });
       if (res.ok) {
         const data = await res.json();
-        if (data.responseStatus === 200) {
-          return data.responseData?.translatedText || texto;
-        } else {
-          console.warn("MyMemory Translation Warning:", data.responseDetails);
-        }
+        return data.translatedText || texto;
       }
     } catch (e) {
       console.error("Erro na tradução:", e);
@@ -75,7 +77,7 @@ const Guia = () => {
     setTraduzindoKey(key);
     try {
       const nomeTraduzido = await traduzirTexto(item.name);
-      
+
       let descTraduzida = "";
       if (item.desc) {
         descTraduzida = await traduzirTextoLongo(item.desc);
@@ -193,8 +195,16 @@ const Guia = () => {
     if (e.key === "Enter") buscarNaAPI();
   };
 
-  const toggleExpandir = (key) => {
-    setItemExpandido((prev) => (prev === key ? null : key));
+  const toggleExpandir = (item) => {
+    const key = item.key;
+    if (itemExpandido === key) {
+      setItemExpandido(null);
+    } else {
+      setItemExpandido(key);
+      if (!traducoes[key]) {
+        traduzirItem(item);
+      }
+    }
   };
 
   const baixarGuia = () => {
@@ -223,8 +233,8 @@ const Guia = () => {
             Original (EN)
           </button>
         ) : (
-          <button 
-            className="btn-traduzir-mini" 
+          <button
+            className="btn-traduzir-mini"
             onClick={() => traduzirItem(item)}
             disabled={traduzindoKey === item.key}
           >
@@ -261,7 +271,7 @@ const Guia = () => {
         </div>
       );
     }
-  
+
     if (abaSelecionada === "Monstros") {
       return (
         <div className="compendio-detalhes">
@@ -286,16 +296,16 @@ const Guia = () => {
               <strong>Deslocamento:</strong>{" "}
               {typeof item.speed === "object"
                 ? Object.entries(item.speed)
-                    .filter(([, v]) => v)
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join(", ")
+                  .filter(([, v]) => v)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(", ")
                 : item.speed}
             </p>
           )}
         </div>
       );
     }
-  
+
     if (abaSelecionada === "Itens Mágicos") {
       return (
         <div className="compendio-detalhes">
@@ -315,7 +325,7 @@ const Guia = () => {
         </div>
       );
     }
-  
+
     return null;
   };
 
@@ -461,7 +471,7 @@ const Guia = () => {
                 <div key={item.key} className="compendio-card">
                   <div
                     className="compendio-card-header"
-                    onClick={() => toggleExpandir(item.key)}
+                    onClick={() => toggleExpandir(item)}
                   >
                     <span className="compendio-nome">
                       {traducoes[item.key]?.name || item.name}

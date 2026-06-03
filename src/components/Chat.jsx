@@ -59,10 +59,10 @@ export default function ChatPage() {
     };
   }, [usuarioLogado.id]);
   
-  // Identificador Único Digital (ID + Email) para isolamento total
+  // Identificador Único Digital (ID) para isolamento total
   const getParticipantKey = (u) => {
     if (!u) return "null";
-    return `${u.id}_${(u.email || "").split("@")[0]}`;
+    return String(u.id);
   };
 
   const meuIdUnico = getParticipantKey(usuarioLogado);
@@ -102,13 +102,36 @@ export default function ChatPage() {
       console.log("📩 Chegou mensagem:", novaMsg);
       
       const conversaAberta = usuarioSelecionadoRef.current;
-      
-      // Só adiciona se a mensagem for da conversa aberta no momento
       const meuId = Number(usuarioLogado.id);
       const remetenteId = Number(novaMsg.remetenteId);
       const destinatarioId = Number(novaMsg.destinatarioId);
-      const outroId = conversaAberta ? Number(conversaAberta.id) : null;
 
+      // 1. Atualiza a sidebar na aba Conversas para subir o usuário pro topo
+      setUsuariosOnline((prev) => {
+        // Se eu mandei a msg (meuId), o contato que deve subir é o destinatarioId. 
+        // Se eu recebi (outro mandou), o contato que deve subir é o remetenteId.
+        const userIdParaAtualizar = Number(remetenteId) === Number(meuId) ? Number(destinatarioId) : Number(remetenteId);
+        const index = prev.findIndex((u) => Number(u.id) === userIdParaAtualizar);
+
+        if (index !== -1) {
+          const usuarioAtualizado = { 
+            ...prev[index], 
+            ultima_mensagem: novaMsg.conteudo,
+            ultimo_horario: novaMsg.timestamp
+          };
+          const novaLista = [...prev];
+          novaLista.splice(index, 1);
+          return [usuarioAtualizado, ...novaLista];
+        } else if (Number(remetenteId) !== Number(meuId)) {
+          // Se for uma msg de alguém que não estava na lista, mas recebemos a mensagem (como se fosse um novo chat)
+          // Isso recarregará a lista em seguida
+          fetchOnlineUsersRef.current && fetchOnlineUsersRef.current();
+        }
+        return prev;
+      });
+
+      // 2. Só adiciona se a mensagem for da conversa aberta no momento
+      const outroId = conversaAberta ? Number(conversaAberta.id) : null;
       const ehDessaConversa = outroId && (
         (remetenteId === outroId && destinatarioId === meuId) ||
         (remetenteId === meuId && destinatarioId === outroId)
@@ -136,30 +159,6 @@ export default function ChatPage() {
         localStorage.setItem(chaveHistorico, JSON.stringify(novaLista));
         
         return novaLista;
-      });
-
-      // Atualiza a sidebar na aba Conversas para subir o usuário pro topo
-      setUsuariosOnline((prev) => {
-        // Se eu mandei a msg (meuId), o contato que deve subir é o destinatarioId. 
-        // Se eu recebi (outro mandou), o contato que deve subir é o remetenteId.
-        const userIdParaAtualizar = Number(remetenteId) === Number(meuId) ? Number(destinatarioId) : Number(remetenteId);
-        const index = prev.findIndex((u) => Number(u.id) === userIdParaAtualizar);
-
-        if (index !== -1) {
-          const usuarioAtualizado = { 
-            ...prev[index], 
-            ultima_mensagem: novaMsg.conteudo,
-            ultimo_horario: novaMsg.timestamp
-          };
-          const novaLista = [...prev];
-          novaLista.splice(index, 1);
-          return [usuarioAtualizado, ...novaLista];
-        } else if (Number(remetenteId) !== Number(meuId)) {
-          // Se for uma msg de alguém que não estava na lista, mas recebemos a mensagem (como se fosse um novo chat)
-          // Isso recarregará a lista em seguida ou podemos criar um item provisório (Idealmente recarregar)
-          fetchOnlineUsersRef.current && fetchOnlineUsersRef.current();
-        }
-        return prev;
       });
     });
 
@@ -537,13 +536,17 @@ export default function ChatPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="no-groups">Nenhum grupo criado ainda.</p>
+                    <div className="no-groups-card">
+                      <span className="no-groups-icon">👥</span>
+                      <p className="no-groups-title">Nenhum grupo criado</p>
+                      <p className="no-groups-text">Crie um grupo acima para começar!</p>
+                    </div>
                   )}
                 </div>
 
                 <div className="usuarios-online">
-                  {usuariosOnline.filter(u => u.ultima_mensagem).length > 0 ? (
-                    usuariosOnline.filter(u => u.ultima_mensagem).map((user) => (
+                  {usuariosOnline.filter(u => u.ultima_mensagem || (usuarioSelecionado && Number(u.id) === Number(usuarioSelecionado.id))).length > 0 ? (
+                    usuariosOnline.filter(u => u.ultima_mensagem || (usuarioSelecionado && Number(u.id) === Number(usuarioSelecionado.id))).map((user) => (
                     <div 
                       key={user.id} 
                       className={`chat-item ${usuarioSelecionado?.id === user.id ? 'active-chat' : ''}`} 
@@ -581,7 +584,11 @@ export default function ChatPage() {
                     </div>
                   ))
                 ) : (
-                  <p className="no-users">Nenhuma conversa recente.</p>
+                  <div className="no-users-card">
+                    <span className="no-users-icon">💬</span>
+                    <p className="no-users-title">Nenhuma conversa recente</p>
+                    <p className="no-users-text">Vá na aba "Buscar" para encontrar amigos.</p>
+                  </div>
                 )}
               </div>
             </> ) : (

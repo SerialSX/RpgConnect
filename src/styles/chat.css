@@ -765,11 +765,59 @@ body {
   font-size: 0.9rem;
 }
 
-.no-groups,
-.no-users {
-  color: #9a8add;
+.no-groups-card,
+.no-users-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  text-align: center;
+  margin: 8px 0;
+  transition: all 0.3s ease;
+}
+
+.no-groups-card:hover,
+.no-users-card:hover {
+  background: rgba(124, 58, 237, 0.04);
+  border-color: rgba(124, 58, 237, 0.25);
+  transform: translateY(-2px);
+}
+
+.no-groups-icon,
+.no-users-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.2));
+  animation: floatEmoji 3s ease-in-out infinite;
+}
+
+.no-groups-title,
+.no-users-title {
+  margin: 0 0 4px 0;
   font-size: 0.95rem;
-  padding: 14px 0;
+  font-weight: 700;
+  color: #fff;
+}
+
+.no-groups-text,
+.no-users-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #a291fb;
+  opacity: 0.75;
+}
+
+@keyframes floatEmoji {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .dropdown-users {

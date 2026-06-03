@@ -68,7 +68,6 @@ const NotificationSystem = () => {
         const response = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`);
         const usuarios = await response.json();
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
-        const chatHistory = JSON.parse(localStorage.getItem(`chat_history_${usuarioObj.id}`) || "{}");
         
         const novas = usuarios
           .filter(u => {
@@ -80,7 +79,8 @@ const NotificationSystem = () => {
             
             // 2. SOLUÇÃO FORÇADA E ABSOLUTA P/ MENSAGENS PRÓPRIAS FANTASMAS
             // A API não diz quem é o remetente da última mensagem, então validamos no histórico local
-            const history = chatHistory[u.id] || [];
+            const history = JSON.parse(localStorage.getItem(`chat_history_${usuarioObj.id}_${u.id}`) || "[]");
+            
             if (history.length > 0) {
               const lastMsgLocal = history[history.length - 1];
               // Se nós fomos os remetentes da última mensagem local:
