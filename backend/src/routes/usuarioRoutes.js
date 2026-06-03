@@ -101,5 +101,30 @@ export default function createUserRoutes(io) {
         }
     });
 
+    router.post("/traduzir", async (req, res) => {
+        const { texto, de, para } = req.body;
+        try {
+            const sourceLang = de || "en";
+            const targetLang = para || "pt";
+            const response = await fetch(
+                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(texto)}`
+            );
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data[0]) {
+                    const translatedText = data[0].map((item) => item[0]).join("");
+                    res.json({ translatedText });
+                } else {
+                    res.status(500).json({ error: "Resposta vazia da API de tradução" });
+                }
+            } else {
+                res.status(response.status).json({ error: "Erro na tradução externa" });
+            }
+        } catch (error) {
+            console.error("Erro no proxy de tradução:", error);
+            res.status(500).json({ error: "Erro interno ao traduzir" });
+        }
+    });
+
     return router;
 }

@@ -1,0 +1,14 @@
+[
+    {
+        "remetente_id": 2,
+        "destinatario_id": 1,
+        "conteudo": "oi",
+        "timestamp": "2026-06-02T22:30:10.869Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 1,
+        "conteudo": "como esta",
+        "timestamp": "2026-06-02T22:31:04.068Z"
+    }
+]
