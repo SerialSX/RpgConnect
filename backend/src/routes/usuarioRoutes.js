@@ -29,7 +29,7 @@ export default function createUserRoutes(io) {
         const { email, senha } = req.body;
         try {
             const result = await db.query(
-                "SELECT id, nome, email, jogos, avatar FROM usuarios WHERE email = $1 AND senha = $2",
+                "SELECT id, nome, email, bio, jogos, avatar FROM usuarios WHERE email = $1 AND senha = $2",
                 [email, senha]
             );
 
@@ -90,9 +90,10 @@ export default function createUserRoutes(io) {
     router.put("/perfil-update", async (req, res) => {
         const { id, nome, bio, jogos, avatar } = req.body;
         try {
+            // Adicionamos a 'bio = $2' no comando SQL e passamos a variável no array!
             await db.query(
-                "UPDATE usuarios SET nome = $1, jogos = $2, avatar = $3 WHERE id = $4",
-                [nome, jogos, avatar, id]
+                "UPDATE usuarios SET nome = $1, bio = $2, jogos = $3, avatar = $4 WHERE id = $5",
+                [nome, bio, jogos, avatar, id]
             );
             res.json({ message: "Perfil atualizado no servidor com sucesso!" });
         } catch (error) {
