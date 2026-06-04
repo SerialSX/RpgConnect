@@ -71,7 +71,12 @@ const NotificationSystem = () => {
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
           }
         });
+        
+        if (!response.ok) return;
+        
         const usuarios = await response.json();
+        if (!Array.isArray(usuarios)) return;
+        
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
         
         const novas = usuarios
