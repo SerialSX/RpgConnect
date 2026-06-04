@@ -38,29 +38,22 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log(`✅ Usuário conectado: ${socket.id}`);
 
-    // Cada usuário entra numa "sala" com seu próprio ID
     socket.on("join", (userId) => {
         socket.join(String(userId));
         console.log(`👤 Usuário ${userId} entrou na sala.`);
     });
 
-    // Recebe mensagem do remetente, salva no banco e reencaminha ao destinatário
     socket.on("enviar_mensagem", async (data) => {
         try {
             const { remetenteId, destinatarioId, conteudo, timestamp } = data;
-            // Adiciona um ID único na mensagem se não vier do frontend
-            data.id = data.id || crypto.randomUUID();
 
-            // Salva a mensagem no banco de dados PostgreSQL
             await db.query(
                 `INSERT INTO mensagens (remetente_id, destinatario_id, conteudo, timestamp)
-         VALUES ($1, $2, $3, $4)`,
+                 VALUES ($1, $2, $3, $4)`,
                 [remetenteId, destinatarioId, conteudo, timestamp || new Date().toISOString()]
             );
 
-            // Envia a mensagem para a sala do destinatário e do rementente (para manter abas sincronizadas)
             io.to(String(destinatarioId)).emit("receber_mensagem", data);
-            io.to(String(remetenteId)).emit("receber_mensagem", data);
 
             console.log(`📩 Mensagem de ${remetenteId} → ${destinatarioId}: ${conteudo}`);
         } catch (err) {
