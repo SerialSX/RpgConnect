@@ -79,11 +79,11 @@ const NotificationSystem = () => {
           window.location.href = "/login";
           return;
         }
+        
+        if (!response.ok) return;
+        
         const usuarios = await response.json();
-        if (!Array.isArray(usuarios)) {
-          console.warn("Retorno de usuarios-online não é um array:", usuarios);
-          return;
-        }
+        if (!Array.isArray(usuarios)) return;
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
         
         const novas = usuarios

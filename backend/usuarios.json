@@ -43,5 +43,14 @@
         "bio": "",
         "jogos": "",
         "avatar": ""
+    },
+    {
+        "id": 6,
+        "nome": "teste2",
+        "email": "teste2@gmail.com",
+        "senha": "123456",
+        "bio": "",
+        "jogos": "",
+        "avatar": ""
     }
 ]
