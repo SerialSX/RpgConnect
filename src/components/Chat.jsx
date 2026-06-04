@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { addXP, getUserLevel } from "../js/xp";
+import { API_URL } from "../config/api";
 import "../styles/chat.css";
 
 /* ===== ATIVOS ===== */
@@ -82,7 +83,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!usuarioLogado?.id) return;
 
-    const s = io("http://localhost:8080", {
+    const s = io(API_URL, {
       withCredentials: true,
       transports: ["polling", "websocket"]
     });
@@ -208,13 +209,24 @@ export default function ChatPage() {
     const fetchOnlineUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioLogado.id}`, {
+        const res = await fetch(`${API_URL}/usuarios/usuarios-online?usuarioId=${usuarioLogado.id}`, {
           headers: {
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
           }
         });
+        if (res.status === 401) {
+          console.warn("Sessão expirada (401) no Chat. Redirecionando...");
+          localStorage.removeItem("usuarioLogado");
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          return;
+        }
         if (!res.ok) throw new Error("Erro na requisição");
         const data = await res.json();
+        if (!Array.isArray(data)) {
+          console.warn("Retorno de usuarios-online não é um array no Chat:", data);
+          return;
+        }
 
         // 🕐 Sincroniza a última visita baseada na hora real do servidor para não dar conflito de fuso horário
         if (data && data.length > 0) {
@@ -317,12 +329,20 @@ export default function ChatPage() {
 
       // Sincroniza com o backend como um "backup" ou base histórica
       const token = localStorage.getItem("token");
-      fetch(`http://localhost:8080/usuarios/historico/${usuarioLogado.id}/${usuarioSelecionado.id}`, {
+      fetch(`${API_URL}/usuarios/historico/${usuarioLogado.id}/${usuarioSelecionado.id}`, {
         headers: {
           ...(token ? { "Authorization": `Bearer ${token}` } : {})
         }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (res.status === 401) {
+            localStorage.removeItem("usuarioLogado");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+            throw new Error("Não autorizado");
+          }
+          return res.json();
+        })
         .then(dados => {
           if (Array.isArray(dados) && dados.length > 0) {
             // Unimos o que veio do banco com o que temos localmente (evitando duplicatas)
@@ -564,10 +584,7 @@ export default function ChatPage() {
               alt="Me"
             />
             <div className="user-self-info">
-              <div className="d-flex align-items-center gap-2">
-                <h6>{usuarioLogado.nome || "Meu Perfil"}</h6>
-                <div className="chat-level-badge">LVL {meuLevel}</div>
-              </div>
+              <h6>{usuarioLogado.nome || "Meu Perfil"}</h6>
               <p className="user-self-grimorio">{usuarioLogado.jogos || "Sem jogos no grimório"}</p>
             </div>
           </div>
@@ -626,10 +643,7 @@ export default function ChatPage() {
                         <span style={{ position: "absolute", bottom: "0px", right: "0px", width: "12px", height: "12px", backgroundColor: "#22c55e", borderRadius: "50%", border: "2px solid #1a1236" }}></span>
                       </div>
                       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", minWidth: 0 }}>
-                          <h6 title={user.nome || "Usuário"} style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: "16.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{user.nome || "Usuário"}</h6>
-                          <div className="chat-level-badge" style={{ flexShrink: 0, whiteSpace: "nowrap" }}>LVL {getUserLevel(user)}</div>
-                        </div>
+                        <h6 title={user.nome || "Usuário"} style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: "16.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{user.nome || "Usuário"}</h6>
                         <p style={{ fontSize: "12px", color: "#bd83f2", margin: "2px 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontStyle: "italic", display: "block" }}>
                           {user.jogos || "Sem jogos no grimório"}
                         </p>
@@ -670,10 +684,7 @@ export default function ChatPage() {
                       <span style={{ position: "absolute", bottom: "0px", right: "0px", width: "12px", height: "12px", backgroundColor: "#22c55e", borderRadius: "50%", border: "2px solid #1a1236" }}></span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", minWidth: 0 }}>
-                        <h6 title={user.nome || "Usuário"} style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{user.nome || "Usuário"}</h6>
-                        <div className="chat-level-badge" style={{ flexShrink: 0, whiteSpace: "nowrap" }}>LVL {getUserLevel(user)}</div>
-                      </div>
+                      <h6 title={user.nome || "Usuário"} style={{ margin: 0, fontWeight: 700, color: "#fff", fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{user.nome || "Usuário"}</h6>
                       <p style={{ fontSize: "12px", color: "#bd83f2", margin: "2px 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontStyle: "italic", display: "block" }}>
                         {user.jogos || ""}
                       </p>
@@ -731,10 +742,7 @@ export default function ChatPage() {
                      )}
                   </div>
                   <div className="chat-header-info">
-                    <div className="d-flex align-items-center gap-2">
-                      <h5>{usuarioSelecionado.nome}</h5>
-                      <div className="chat-level-badge">LVL {getUserLevel(usuarioSelecionado)}</div>
-                    </div>
+                    <h5>{usuarioSelecionado.nome}</h5>
                     <p className="user-grimorio-header">
                       {usuarioSelecionado.jogos || "Aventureiro sem grimório"}
                     </p>

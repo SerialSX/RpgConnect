@@ -2,6 +2,7 @@ import pkg from "pg";
 import 'dotenv/config';
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 const { Pool } = pkg;
 
@@ -11,13 +12,21 @@ const pool = new Pool({
     database: process.env.DB_NAME || "RPG",
     password: process.env.DB_PASSWORD || "teste",
     port: parseInt(process.env.DB_PORT || "5432", 10),
+    connectionTimeoutMillis: 2000,
+});
+
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle pg client:', err.message);
 });
 
 let useFallback = false;
 let fallbackChecked = false;
 
-const usersFile = path.resolve("usuarios.json");
-const messagesFile = path.resolve("mensagens.json");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const usersFile = path.resolve(__dirname, "../../usuarios.json");
+const messagesFile = path.resolve(__dirname, "../../mensagens.json");
 
 function readJson(file, defaultVal) {
     if (!fs.existsSync(file)) {
@@ -80,11 +89,11 @@ function queryFallback(sql, params) {
         return { rows: [newUser] };
     }
     
-    // 2. SELECT FROM usuarios for login
-    if (cleanedSql.includes("SELECT id, nome, email, jogos, avatar FROM usuarios WHERE email = $1 AND senha = $2")) {
-        const [email, senha] = params;
+    // 2. SELECT FROM usuarios by email
+    if (cleanedSql.includes("FROM usuarios WHERE email = $1")) {
+        const [email] = params;
         const users = readJson(usersFile, []);
-        const user = users.find(u => u.email === email && u.senha === senha);
+        const user = users.find(u => u.email === email);
         return { rows: user ? [user] : [] };
     }
     

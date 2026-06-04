@@ -1,7 +1,13 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { db } from "../config/db.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+
+function hashPassword(password) {
+    if (!password) return "";
+    return crypto.createHash("sha256").update(password).digest("hex");
+}
 
 export default function createUserRoutes(io) {
     const router = express.Router();
@@ -10,9 +16,10 @@ export default function createUserRoutes(io) {
     router.post("/cadastro", async (req, res) => {
         const { nome, email, senha } = req.body;
         try {
+            const senhaHash = hashPassword(senha);
             const result = await db.query(
                 "INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id, nome, email",
-                [nome, email, senha]
+                [nome, email, senhaHash]
             );
             const novoUsuario = result.rows[0];
 
@@ -37,18 +44,28 @@ export default function createUserRoutes(io) {
         const { email, senha } = req.body;
         try {
             const result = await db.query(
-                "SELECT id, nome, email, jogos, avatar FROM usuarios WHERE email = $1 AND senha = $2",
-                [email, senha]
+                "SELECT id, nome, email, senha, jogos, avatar FROM usuarios WHERE email = $1",
+                [email]
             );
 
             if (result.rows.length > 0) {
                 const usuario = result.rows[0];
-                const token = jwt.sign(
-                    { id: usuario.id, nome: usuario.nome, email: usuario.email },
-                    process.env.JWT_SECRET || "rpgconnect_super_secret_key_2026",
-                    { expiresIn: "24h" }
-                );
-                res.json({ usuario, token });
+                const senhaHash = hashPassword(senha);
+                
+                // Suporta tanto senha hashada quanto plaintext (retrocompatibilidade)
+                if (usuario.senha === senhaHash || usuario.senha === senha) {
+                    const token = jwt.sign(
+                        { id: usuario.id, nome: usuario.nome, email: usuario.email },
+                        process.env.JWT_SECRET || "rpgconnect_super_secret_key_2026",
+                        { expiresIn: "24h" }
+                    );
+                    
+                    // Remove a senha do objeto enviado ao frontend
+                    const { senha: _, ...usuarioSemSenha } = usuario;
+                    res.json({ usuario: usuarioSemSenha, token });
+                } else {
+                    res.status(401).json({ error: "E-mail ou senha incorretos." });
+                }
             } else {
                 res.status(401).json({ error: "E-mail ou senha incorretos." });
             }

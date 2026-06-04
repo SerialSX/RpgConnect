@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { API_URL } from "../config/api";
 import "../styles/guia.css";
 import "../styles/home.css";
 
@@ -35,7 +36,7 @@ const Guia = () => {
     if (!texto) return "";
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/usuarios/traduzir", {
+      const res = await fetch(`${API_URL}/usuarios/traduzir`, {
         method: "POST",
         body: JSON.stringify({
           texto,
@@ -47,6 +48,13 @@ const Guia = () => {
           ...(token ? { "Authorization": `Bearer ${token}` } : {})
         }
       });
+      if (res.status === 401) {
+        console.warn("Sessão expirada (401) ao traduzir. Redirecionando...");
+        localStorage.removeItem("usuarioLogado");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return texto;
+      }
       if (res.ok) {
         const data = await res.json();
         return data.translatedText || texto;

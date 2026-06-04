@@ -7,11 +7,18 @@ import createUserRoutes from "./src/routes/usuarioRoutes.js";
 
 const app = express();
 
+const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
 // =====================================================
 // CORS para requisições HTTP normais (REST)
 // =====================================================
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+        if (!origin || localOriginRegex.test(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("CORS policy violation"), false);
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
@@ -25,7 +32,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: function (origin, callback) {
+            if (!origin || localOriginRegex.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("CORS policy violation"), false);
+        },
         methods: ["GET", "POST"],
         credentials: true       // <-- ESSENCIAL: evita o erro de CORS que você viu
     },
@@ -115,7 +127,7 @@ const enviarPingAuxiliar = async () => {
 // INICIAR SERVIDOR
 // =====================================================
 const PORT = 8080;
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, () => {
     console.log(`🚀 SERVIDOR RODANDO NA PORTA ${PORT}`);
     
     // Envia o primeiro ping e agenda os próximos a cada 30 segundos

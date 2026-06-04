@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "../config/api";
 import "../styles/notification_system.css";
 
 // Assets
@@ -29,7 +30,7 @@ const NotificationSystem = () => {
   useEffect(() => {
     if (!usuarioObj?.id) return;
 
-    const socket = io("http://localhost:8080", {
+    const socket = io(API_URL, {
       withCredentials: true,
       transports: ["polling", "websocket"]
     });
@@ -66,12 +67,23 @@ const NotificationSystem = () => {
       if (!usuarioObj?.id) return;
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`, {
+        const response = await fetch(`${API_URL}/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`, {
           headers: {
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
           }
         });
+        if (response.status === 401) {
+          console.warn("Sessão expirada (401). Redirecionando para login...");
+          localStorage.removeItem("usuarioLogado");
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          return;
+        }
         const usuarios = await response.json();
+        if (!Array.isArray(usuarios)) {
+          console.warn("Retorno de usuarios-online não é um array:", usuarios);
+          return;
+        }
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
         
         const novas = usuarios

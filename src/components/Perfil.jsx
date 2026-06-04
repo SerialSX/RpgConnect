@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { API_URL } from '../config/api';
 import '../styles/perfil.css'; 
 
 import logo from "../assets/icone_logo.png";
@@ -94,7 +95,7 @@ export default function Perfil() {
         localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
 
         const token = localStorage.getItem("token");
-        fetch("http://localhost:8080/usuarios/perfil-update", {
+        fetch(`${API_URL}/usuarios/perfil-update`, {
           method: "PUT",
           headers: { 
             "Content-Type": "application/json",
@@ -107,7 +108,15 @@ export default function Perfil() {
             jogos: jogos,
             avatar: avatar // 🔥 Enviar a foto para o servidor
           })
-        }).then(res => res.json())
+        }).then(res => {
+          if (res.status === 401) {
+            localStorage.removeItem("usuarioLogado");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+            throw new Error("Não autorizado");
+          }
+          return res.json();
+        })
           .then(data => console.log("✅ Sincronizado com o servidor:", data))
           .catch(err => console.error("❌ Erro ao sincronizar com servidor:", err));
 

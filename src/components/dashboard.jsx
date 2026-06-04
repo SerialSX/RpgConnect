@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { getLevelInfo, addXP, claimUniqueBonus } from "../js/xp";
+import { API_URL } from "../config/api";
 import "../styles/dashboard.css";
 
 import logo from "../assets/icone_logo.png";
@@ -26,13 +27,6 @@ import ddImg from "../assets/dungeons_and_dragons_1.png";
 import ttrImg from "../assets/ticket_to_ride_1.png";
 import warImg from "../assets/war_1.png";
 
-const LISTA_JOGOS = [
-    { id: "catan", nome: "Catan", imagem: catanImg },
-    { id: "dd", nome: "D&D", imagem: ddImg },
-    { id: "ttr", nome: "Ticket to Ride", imagem: ttrImg },
-    { id: "war", nome: "War", imagem: warImg },
-];
-
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -44,6 +38,13 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "./alert-dialog";
+
+const LISTA_JOGOS = [
+    { id: "catan", nome: "Catan", imagem: catanImg },
+    { id: "dd", nome: "D&D", imagem: ddImg },
+    { id: "ttr", nome: "Ticket to Ride", imagem: ttrImg },
+    { id: "war", nome: "War", imagem: warImg },
+];
 
 const traduzirTexto = async (texto, de = "en", para = "pt") => {
     if (!texto) return "";
@@ -65,7 +66,7 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
         "In battle, you fight with primal ferocity. On your turn, you can enter a rage as a bonus action.": 
             "Em batalha, você luta com ferocidade primitiva. Em seu turno, você pode entrar em fúria como uma ação bônus.",
         "You have learned to untangle and reshape the fabric of reality in harmony with your wishes and music.": 
-            "Você aprendeu a desatar e remodelar a estrutura da realidade em harmonia com seus desejos e música.",
+            "Você aprendeu a desatar e remover a estrutura da realidade em harmonia com seus desejos e música.",
         "As a conduit for divine power, you can cast cleric spells.": 
             "Como um canalizador de poder divino, você pode conjurar magias de clérigo.",
         "You know Druidic, the secret language of druids. You can speak the language and use it to leave hidden messages. You and others who know this language automatically spot such a message. Others spot the message's presence with a successful DC 15 Wisdom (Perception) check but can't decipher it without magic.": 
@@ -127,7 +128,7 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
     
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/usuarios/traduzir", {
+        const res = await fetch(`${API_URL}/usuarios/traduzir`, {
             method: "POST",
             body: JSON.stringify({
                 texto: tClean,
@@ -139,6 +140,13 @@ const traduzirTexto = async (texto, de = "en", para = "pt") => {
                 ...(token ? { "Authorization": `Bearer ${token}` } : {})
             }
         });
+        if (res.status === 401) {
+            console.warn("Sessão expirada (401) ao traduzir. Redirecionando...");
+            localStorage.removeItem("usuarioLogado");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+            return texto;
+        }
         if (res.ok) {
             const data = await res.json();
             return data.translatedText || texto;
@@ -430,37 +438,18 @@ const TelaUsuario = () => {
     );
 };
 
-const ServicosAuxiliares = ({ dica, status }) => {
-    const isAuxOnline = status.auxiliar === "Online";
-    const isPrincipalOnline = status.principal === "Online";
-
+const ServicosAuxiliares = ({ dica }) => {
     return (
         <section className="mb-5">
             <div className="aux-services-panel p-4">
                 <div className="row align-items-center">
-                    <div className="col-lg-8 mb-4 mb-lg-0">
+                    <div className="col-12">
                         <div className="tip-title-box">
                             <span>🔮 Dica de RPG do Dia (Serviço Integrado)</span>
                         </div>
                         <p className="tip-text-content">
                             {dica || "Buscando sabedoria nas runas do servidor auxiliar..."}
                         </p>
-                    </div>
-                    <div className="col-lg-4 text-lg-end d-flex flex-column gap-2 align-items-lg-end align-items-start">
-                        <div className="d-flex align-items-center gap-2 w-100 justify-content-lg-end">
-                            <span className="text-white-50 small font-weight-bold">Serviço Auxiliar (Porta 8081):</span>
-                            <span className={`status-badge-indicator ${isAuxOnline ? "online" : "offline"}`}>
-                                <span className={`status-dot ${isAuxOnline ? "online" : "offline"}`}></span>
-                                {status.auxiliar}
-                            </span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2 w-100 justify-content-lg-end">
-                            <span className="text-white-50 small font-weight-bold">Servidor Principal (Porta 8080):</span>
-                            <span className={`status-badge-indicator ${isPrincipalOnline ? "online" : "offline"}`}>
-                                <span className={`status-dot ${isPrincipalOnline ? "online" : "offline"}`}></span>
-                                {status.principal}
-                            </span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -478,13 +467,7 @@ const HeaderUsuario = ({ nome, avatar, levelInfo }) => (
             )}
         </div>
         <div className="ms-3 d-flex flex-column">
-            <div className="d-flex align-items-center gap-3">
-                <h1 className="h2 mb-0 text-white fw-bold">Olá, {nome}</h1>
-                <div className="header-level-badge">
-                    <span className="lvl-text">LVL</span>
-                    <span className="lvl-num">{levelInfo.level}</span>
-                </div>
-            </div>
+            <h1 className="h2 mb-0 text-white fw-bold">Olá, {nome}</h1>
             <p className="texto_user mb-0">Pronto pra jogar?</p>
         </div>
     </header>
@@ -502,11 +485,145 @@ const AcessoRapido = () => (
     </>
 );
 
-const ConteudoUsuario = ({ levelInfo }) => {
+const LOCAL_CLASSES = [
+    {
+        nome: "Bárbaro",
+        descricao: "Um combatente feroz de fúria primitiva e alta resistência a dano físico.",
+        skills: ["Fúria", "Defesa Sem Armadura", "Ataque Temerário"],
+        stats: { for: 95, int: 15, agi: 60, vit: 85 },
+        cor: "#ff4d4d",
+        imagem: iconInicio,
+        api: true,
+        slug: "barbarian"
+    },
+    {
+        nome: "Bardo",
+        descricao: "Um mestre da música e da magia que inspira seus aliados e manipula a mente dos inimigos.",
+        skills: ["Inspiração Bárdica", "Pau pra Toda Obra", "Canção de Descanso"],
+        stats: { for: 35, int: 80, agi: 75, vit: 50 },
+        cor: "#bd83f2",
+        imagem: iconChat,
+        api: true,
+        slug: "bard"
+    },
+    {
+        nome: "Clérigo",
+        descricao: "Um guerreiro sagrado que canaliza o poder divino para curar ferimentos e punir os infiéis.",
+        skills: ["Conjuração de Magia", "Canalizar Divindade", "Destruir Mortos-Vivos"],
+        stats: { for: 70, int: 75, agi: 40, vit: 80 },
+        cor: "#ffd700",
+        imagem: swordShield,
+        api: true,
+        slug: "cleric"
+    },
+    {
+        nome: "Druida",
+        descricao: "Um sacerdote da antiga fé que invoca os poderes da natureza e assume formas de feras selvagens.",
+        skills: ["Druídico", "Forma Selvagem", "Círculo Druídico"],
+        stats: { for: 40, int: 85, agi: 60, vit: 75 },
+        cor: "#2ecc71",
+        imagem: adventurePhoto,
+        api: true,
+        slug: "druid"
+    },
+    {
+        nome: "Guerreiro",
+        descricao: "Um especialista em combate armado, altamente treinado no uso de todas as armas e armaduras.",
+        skills: ["Estilo de Luta", "Retomar o Fôlego", "Surto de Ação"],
+        stats: { for: 90, int: 40, agi: 70, vit: 80 },
+        cor: "#e74c3c",
+        imagem: rpgPhoto,
+        api: true,
+        slug: "fighter"
+    },
+    {
+        nome: "Monge",
+        descricao: "Um artista marcial que canaliza a energia mística do próprio corpo para realizar feitos sobre-humanos.",
+        skills: ["Defesa Sem Armadura", "Artes Marciais", "Ki"],
+        stats: { for: 60, int: 65, agi: 90, vit: 70 },
+        cor: "#e67e22",
+        imagem: magicPhoto,
+        api: true,
+        slug: "monk"
+    },
+    {
+        nome: "Paladino",
+        descricao: "Um guerreiro sagrado jurado a causas de justiça, que canaliza a retidão para proteger seus aliados.",
+        skills: ["Sentido Divino", "Imposição de Mãos", "Punição Divina"],
+        stats: { for: 85, int: 60, agi: 40, vit: 90 },
+        cor: "#ffd700",
+        imagem: swordShield,
+        api: true,
+        slug: "paladin"
+    },
+    {
+        nome: "Patrulheiro",
+        descricao: "Um caçador e rastreador implacável, mestre da sobrevivência nas fronteiras da civilização.",
+        skills: ["Inimigo Favorito", "Explorador Natural", "Consciência Primitiva"],
+        stats: { for: 65, int: 55, agi: 85, vit: 70 },
+        cor: "#16a085",
+        imagem: logo,
+        api: true,
+        slug: "ranger"
+    },
+    {
+        nome: "Ladino",
+        descricao: "Um mestre da furtividade e de artimanhas, capaz de encontrar fraquezas e abrir fechaduras trancadas.",
+        skills: ["Ataque Furtivo", "Gíria de Ladrão", "Especialização"],
+        stats: { for: 50, int: 70, agi: 95, vit: 45 },
+        cor: "#34495e",
+        imagem: iconPerfil,
+        api: true,
+        slug: "rogue"
+    },
+    {
+        nome: "Feiticeiro",
+        descricao: "Um conjurador nato que carrega em suas veias uma magia ancestral herdada de dragões ou fadas.",
+        skills: ["Origem Feiticeira", "Fonte de Magia", "Metamagia"],
+        stats: { for: 30, int: 90, agi: 65, vit: 55 },
+        cor: "#9b59b6",
+        imagem: magicPhoto,
+        api: true,
+        slug: "sorcerer"
+    },
+    {
+        nome: "Bruxo",
+        descricao: "Um conjurador místico que firmou um pacto eterno com uma criatura transcendental de outro plano.",
+        skills: ["Magia de Pacto", "Patrono do Outro Mundo", "Invocações Místicas"],
+        stats: { for: 35, int: 92, agi: 60, vit: 65 },
+        cor: "#8e44ad",
+        imagem: iconDices,
+        api: true,
+        slug: "warlock"
+    },
+    {
+        nome: "Mago",
+        descricao: "Um estudioso obstinado que domina as artes arcanas lendo tomos antigos e grimórios de fórmulas.",
+        skills: ["Recuperação Arcana", "Tradição Arcana", "Conjuração de Magia"],
+        stats: { for: 20, int: 98, agi: 50, vit: 40 },
+        cor: "#2980b9",
+        imagem: bookPhoto,
+        api: true,
+        slug: "wizard"
+    }
+];
+
+const ConteudoUsuario = () => {
     const [classe, setClasse] = useState(null);
     const [jogosFavoritos, setJogosFavoritos] = useState([]);
     const [modalAberto, setModalAberto] = useState(false);
     const [carregandoClasse, setCarregandoClasse] = useState(false);
+
+    const placeholderClass = {
+        nome: "Invocando...",
+        descricao: "Consultando os pergaminhos do destino para determinar sua identidade heroica...",
+        skills: ["Carregando...", "Carregando...", "Carregando..."],
+        stats: { for: 50, int: 50, agi: 50, vit: 50 },
+        cor: "#bd83f2",
+        imagem: rpgPhoto
+    };
+
+    const classeExibida = classe || placeholderClass;
 
     const gerarClasseAleatoria = async () => {
         const dadosStored = localStorage.getItem("usuarioLogado");
@@ -516,45 +633,58 @@ const ConteudoUsuario = ({ levelInfo }) => {
         const chaveClasse = `classe_${identificadorChave}`;
 
         setCarregandoClasse(true);
+
         try {
-            const res = await fetch("https://api.open5e.com/v1/classes/");
-            if (!res.ok) throw new Error("Erro ao buscar classes na API");
+            // Tenta buscar da API externa com timeout de 3 segundos
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
+            const res = await fetch("https://api.open5e.com/v1/classes/", { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) throw new Error("Erro na resposta da API");
             const data = await res.json();
             const classesList = data.results;
-            if (!classesList || classesList.length === 0) throw new Error("Nenhuma classe encontrada");
-
-            const classeSorteada = classesList[Math.floor(Math.random() * classesList.length)];
-            const slug = classeSorteada.slug;
-
-            const config = getClassStatsAndColor(slug);
-            const bioEng = getBio(classeSorteada.desc);
-            const skillsEng = getSkills(classeSorteada.desc);
-
-            const nomeTraduzido = await traduzirTexto(classeSorteada.name);
-            const bioTraduzida = await traduzirTexto(bioEng);
             
-            const skillsTraduzidas = [];
-            for (const skill of skillsEng) {
-                const skillTrad = await traduzirTexto(skill);
-                skillsTraduzidas.push(skillTrad);
+            if (classesList && classesList.length > 0) {
+                // Sorteia uma classe aleatória da lista da API
+                const classeSorteada = classesList[Math.floor(Math.random() * classesList.length)];
+                const slug = classeSorteada.slug;
+                
+                const config = getClassStatsAndColor(slug);
+                const bioEng = getBio(classeSorteada.desc);
+                const skillsEng = getSkills(classeSorteada.desc);
+                
+                const nomeTraduzido = await traduzirTexto(classeSorteada.name);
+                const bioTraduzida = await traduzirTexto(bioEng);
+                const skillsTraduzidas = [];
+                for (const skill of skillsEng) {
+                    const skillTrad = await traduzirTexto(skill);
+                    skillsTraduzidas.push(skillTrad);
+                }
+                
+                const novaClasse = {
+                    nome: nomeTraduzido,
+                    descricao: bioTraduzida,
+                    skills: skillsTraduzidas,
+                    stats: config.stats,
+                    cor: config.cor,
+                    imagem: config.imagem,
+                    api: true,
+                    slug: slug
+                };
+                
+                localStorage.setItem(chaveClasse, JSON.stringify(novaClasse));
+                setClasse(novaClasse);
+            } else {
+                throw new Error("Lista de classes vazia");
             }
-
-            const novaClasse = {
-                nome: nomeTraduzido,
-                descricao: bioTraduzida,
-                skills: skillsTraduzidas,
-                stats: config.stats,
-                cor: config.cor,
-                imagem: config.imagem,
-                api: true,
-                slug: slug
-            };
-
-            localStorage.setItem(chaveClasse, JSON.stringify(novaClasse));
-            setClasse(novaClasse);
         } catch (err) {
-            console.error("Erro ao gerar classe aleatória:", err);
-            alert("Erro ao conectar à API Open5e. Tente novamente.");
+            console.warn("Falha ao usar a API externa, ativando banco de classes local:", err.message);
+            // Fallback para LOCAL_CLASSES local instantâneo
+            const classeSorteada = LOCAL_CLASSES[Math.floor(Math.random() * LOCAL_CLASSES.length)];
+            localStorage.setItem(chaveClasse, JSON.stringify(classeSorteada));
+            setClasse(classeSorteada);
         } finally {
             setCarregandoClasse(false);
         }
@@ -589,67 +719,81 @@ const ConteudoUsuario = ({ levelInfo }) => {
 
                 if (classeSalva) {
                     const parsedClass = JSON.parse(classeSalva);
-                    if (parsedClass && parsedClass.api) {
+                    if (parsedClass) {
                         setClasse(parsedClass);
                         return;
                     }
                 }
 
                 setCarregandoClasse(true);
-                const res = await fetch("https://api.open5e.com/v1/classes/");
-                if (!res.ok) throw new Error("Erro ao buscar classes na API");
-                const data = await res.json();
-                const classesList = data.results;
-                if (classesList && classesList.length > 0) {
+                
+                try {
+                    // Tenta buscar da API externa com timeout de 3 segundos
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    const res = await fetch("https://api.open5e.com/v1/classes/", { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    if (!res.ok) throw new Error("Erro na resposta da API");
+                    const data = await res.json();
+                    const classesList = data.results;
+                    
+                    if (classesList && classesList.length > 0) {
+                        const seed = `${usuarioObj.nome || ""}-${usuarioObj.email || ""}-${usuarioObj.id || ""}`.toLowerCase();
+                        let hash = 0;
+                        for (let i = 0; i < seed.length; i++) {
+                            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+                            hash |= 0;
+                        }
+                        const index = Math.abs(hash) % classesList.length;
+                        const classeSorteada = classesList[index];
+                        const slug = classeSorteada.slug;
+                        
+                        const config = getClassStatsAndColor(slug);
+                        const bioEng = getBio(classeSorteada.desc);
+                        const skillsEng = getSkills(classeSorteada.desc);
+                        
+                        const nomeTraduzido = await traduzirTexto(classeSorteada.name);
+                        const bioTraduzida = await traduzirTexto(bioEng);
+                        const skillsTraduzidas = [];
+                        for (const skill of skillsEng) {
+                            const skillTrad = await traduzirTexto(skill);
+                            skillsTraduzidas.push(skillTrad);
+                        }
+                        
+                        const novaClasse = {
+                            nome: nomeTraduzido,
+                            descricao: bioTraduzida,
+                            skills: skillsTraduzidas,
+                            stats: config.stats,
+                            cor: config.cor,
+                            imagem: config.imagem,
+                            api: true,
+                            slug: slug
+                        };
+                        
+                        localStorage.setItem(chaveClasse, JSON.stringify(novaClasse));
+                        setClasse(novaClasse);
+                    } else {
+                        throw new Error("Lista de classes vazia");
+                    }
+                } catch (err) {
+                    console.warn("Falha ao inicializar classe via API, usando local:", err.message);
                     const seed = `${usuarioObj.nome || ""}-${usuarioObj.email || ""}-${usuarioObj.id || ""}`.toLowerCase();
                     let hash = 0;
                     for (let i = 0; i < seed.length; i++) {
                         hash = ((hash << 5) - hash) + seed.charCodeAt(i);
                         hash |= 0;
                     }
-                    const index = Math.abs(hash) % classesList.length;
-                    const classeSorteada = classesList[index];
-                    const slug = classeSorteada.slug;
-
-                    const config = getClassStatsAndColor(slug);
-                    const bioEng = getBio(classeSorteada.desc);
-                    const skillsEng = getSkills(classeSorteada.desc);
-
-                    const nomeTraduzido = await traduzirTexto(classeSorteada.name);
-                    const bioTraduzida = await traduzirTexto(bioEng);
+                    const index = Math.abs(hash) % LOCAL_CLASSES.length;
+                    const classeSorteada = LOCAL_CLASSES[index];
                     
-                    const skillsTraduzidas = [];
-                    for (const skill of skillsEng) {
-                        const skillTrad = await traduzirTexto(skill);
-                        skillsTraduzidas.push(skillTrad);
-                    }
-
-                    const novaClasse = {
-                        nome: nomeTraduzido,
-                        descricao: bioTraduzida,
-                        skills: skillsTraduzidas,
-                        stats: config.stats,
-                        cor: config.cor,
-                        imagem: config.imagem,
-                        api: true,
-                        slug: slug
-                    };
-
-                    localStorage.setItem(chaveClasse, JSON.stringify(novaClasse));
-                    setClasse(novaClasse);
+                    localStorage.setItem(chaveClasse, JSON.stringify(classeSorteada));
+                    setClasse(classeSorteada);
                 }
             } catch (error) {
                 console.error("Erro ao carregar dados:", error);
-                setClasse({
-                    nome: "Guerreiro",
-                    descricao: "Um especialista em combate armado, resiliente e versátil.",
-                    skills: ["Retomar o Fôlego", "Surto de Ação"],
-                    stats: { for: 90, int: 40, agi: 70, vit: 80 },
-                    cor: "#e74c3c",
-                    imagem: rpgPhoto,
-                    api: true,
-                    slug: "fighter"
-                });
             } finally {
                 setCarregandoClasse(false);
             }
@@ -686,10 +830,6 @@ const ConteudoUsuario = ({ levelInfo }) => {
             }
         }
     };
-
-    if (carregandoClasse || !classe) {
-        return <div className="loading-rpg">Consultando pergaminhos de destino...</div>;
-    }
 
     return (
         <div className="container_cards_jogos_classe">
@@ -763,24 +903,34 @@ const ConteudoUsuario = ({ levelInfo }) => {
                         {carregandoClasse ? "Invocando..." : "🎲 Sortear Nova Classe"}
                     </button>
                 </div>
-                <div className="container_classe_rpg">
-                    <div className="premium-class-card" style={{ "--item-color": classe.cor }}>
+                <div className="container_classe_rpg" style={{ position: "relative" }}>
+                    <div className="premium-class-card" style={{ "--item-color": classeExibida.cor }}>
+                        {carregandoClasse && (
+                            <div className="class-card-loading-overlay">
+                                <div className="spinner-border text-light mb-2" role="status">
+                                    <span className="visually-hidden">Carregando...</span>
+                                </div>
+                                <div className="text-white fw-bold" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
+                                    Consultando pergaminhos...
+                                </div>
+                            </div>
+                        )}
                         <div className="class-card-glow"></div>
                         <div className="class-card-content p-4 p-md-5">
                             <div className="row g-4 align-items-stretch">
                                 <div className="col-lg-4 text-center border-end-custom d-flex flex-column justify-content-center">
                                     <div className="class-icon-wrapper mb-3">
-                                        <img src={classe.imagem || rpgPhoto} alt={classe.nome} />
+                                        <img src={classeExibida.imagem || rpgPhoto} alt={classeExibida.nome} />
                                     </div>
-                                    <h2 className="class-name-title mb-2">{classe.nome}</h2>
+                                    <h2 className="class-name-title mb-2">{classeExibida.nome}</h2>
                                 </div>
                                 <div className="col-lg-4 px-lg-4 border-end-custom">
                                     <div className="h-100 d-flex flex-column justify-content-center">
                                         <h5 className="section-subtitle">Bio da Classe</h5>
-                                        <p className="class-bio-text">{classe.descricao}</p>
+                                        <p className="class-bio-text">{classeExibida.descricao}</p>
                                         <h5 className="section-subtitle mt-2">Habilidades Especiais</h5>
                                         <div className="skills-container">
-                                            {classe.skills && Array.isArray(classe.skills) && classe.skills.map((skill, i) => (
+                                            {classeExibida.skills && Array.isArray(classeExibida.skills) && classeExibida.skills.map((skill, i) => (
                                                 <span key={i} className="skill-pill">{skill}</span>
                                             ))}
                                         </div>
@@ -789,10 +939,10 @@ const ConteudoUsuario = ({ levelInfo }) => {
                                 <div className="col-lg-4 ps-lg-4 d-flex flex-column justify-content-center">
                                     <h5 className="section-subtitle">Ficha de Atributos</h5>
                                     <div className="stats-grid">
-                                        <StatBar label="FORÇA" value={classe.stats?.for || 0} color="#ff4d4d" />
-                                        <StatBar label="INTELIGÊNCIA" value={classe.stats?.int || 0} color="#3498db" />
-                                        <StatBar label="AGILIDADE" value={classe.stats?.agi || 0} color="#2ecc71" />
-                                        <StatBar label="VITALIDADE" value={classe.stats?.vit || 0} color="#f1c40f" />
+                                        <StatBar label="FORÇA" value={classeExibida.stats?.for || 0} color="#ff4d4d" />
+                                        <StatBar label="INTELIGÊNCIA" value={classeExibida.stats?.int || 0} color="#3498db" />
+                                        <StatBar label="AGILIDADE" value={classeExibida.stats?.agi || 0} color="#2ecc71" />
+                                        <StatBar label="VITALIDADE" value={classeExibida.stats?.vit || 0} color="#f1c40f" />
                                     </div>
                                 </div>
                             </div>
