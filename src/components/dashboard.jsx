@@ -26,6 +26,39 @@ import catanImg from "../assets/catan_1.png";
 import ddImg from "../assets/dungeons_and_dragons_1.png";
 import ttrImg from "../assets/ticket_to_ride_1.png";
 import warImg from "../assets/war_1.png";
+import mansionImg from "../assets/mansion_madness.png";
+import gloomhavenImg from "../assets/gloomhaven.png";
+import heroquestImg from "../assets/heroquest.png";
+import descentImg from "../assets/descent.png";
+import tormentaImg from "../assets/tormenta.png";
+import vampiroImg from "../assets/vampiro.png";
+import arkhamImg from "../assets/arkham_horror.png";
+import betrayalImg from "../assets/betrayal.png";
+import bloodrageImg from "../assets/blood_rage.png";
+import miceImg from "../assets/mice_and_mystics.png";
+import paranormalImg from "../assets/paranormal.png";
+import zombicideImg from "../assets/zombicide.png";
+
+const MAPA_IMAGENS = {
+  catanImg: catanImg,
+  ddImg: ddImg,
+  ttrImg: ttrImg,
+  warImg: warImg,
+  rpgPhoto: paranormalImg ,
+  adventurePhoto: zombicideImg,
+  mansionImg: mansionImg,
+  gloomhavenImg: gloomhavenImg,
+  heroquestImg: heroquestImg,
+  descentImg: descentImg,
+  tormentaImg: tormentaImg,
+  vampiroImg: vampiroImg,
+  arkhamImg: arkhamImg,
+  betrayalImg: betrayalImg,
+  bloodrageImg: bloodrageImg,
+  miceImg: miceImg,
+  paranormalImg: paranormalImg,
+  zombicideImg: zombicideImg
+};
 
 import {
     AlertDialog,
@@ -984,7 +1017,7 @@ const ConteudoUsuario = () => {
                                     {jogosFavoritos.map(jogo => (
                                         <div key={jogo.id} className="jogo_favorito_item">
                                             {jogo.imagem ? (
-                                                <img src={jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover" }} />
+                                                <img src={MAPA_IMAGENS[jogo.imagem] || jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover" }} />
                                             ) : (
                                                 <div style={{ width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#342f4d", borderRadius: "8px", fontSize: "2rem" }}>🎲</div>
                                             )}
@@ -1013,12 +1046,12 @@ const ConteudoUsuario = () => {
                         {/* Filtros Rápidos */}
                         <div className="d-flex flex-wrap gap-2 mb-3 justify-content-center">
                             {[
-                                { label: "D&D", term: "Dungeons & Dragons" },
-                                { label: "Tormenta", term: "Tormenta" },
-                                { label: "Pathfinder", term: "Pathfinder" },
-                                { label: "Cyberpunk", term: "Cyberpunk" },
-                                { label: "Cthulhu", term: "Call of Cthulhu" },
-                                { label: "Vampiro", term: "Vampire The Masquerade" }
+                                { label: "D&D", term: "Dungeons & Dragons 5e" },
+                                { label: "Tormenta", term: "Tormenta20" },
+                                { label: "Ordem", term: "Ordem Paranormal" },
+                                { label: "Zombicide", term: "Zombicide" },
+                                { label: "Gloomhaven", term: "Gloomhaven" },
+                                { label: "Vampiro", term: "Vampiro: A Máscara" }
                             ].map(filtro => (
                                 <button
                                     key={filtro.label}
@@ -1088,7 +1121,7 @@ const ConteudoUsuario = () => {
                                         >
                                             <div className="check_box">{selecionado ? '✓' : ''}</div>
                                             {jogo.imagem ? (
-                                                <img src={jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover", width: "100%", height: "100px", borderRadius: "6px" }} />
+                                                <img src={MAPA_IMAGENS[jogo.imagem] || jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover", width: "100%", height: "100px", borderRadius: "6px" }} />
                                             ) : (
                                                 <div style={{ width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#342f4d", borderRadius: "6px", fontSize: "2rem" }}>🎲</div>
                                             )}
