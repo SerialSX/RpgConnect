@@ -269,7 +269,7 @@ app.get("/rolar/:lados", (req, res) => {
 });
 
 // =====================================================
-// RPGGEEK SEARCH PROXY (Busca de RPG de mesa físicos)
+// RPGGEEK SEARCH PROXY (Busca via NPOINT do Éderson)
 // =====================================================
 app.get("/api/rpggeek/search", async (req, res) => {
     const query = req.query.q || "";
@@ -278,50 +278,24 @@ app.get("/api/rpggeek/search", async (req, res) => {
     }
 
     try {
-        const response = await fetch(
-            `https://rpggeek.com/geeksearch.php?action=search&objecttype=rpgitem&q=${encodeURIComponent(query)}`,
-            {
-                headers: {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                    "Accept-Language": "en-US,en;q=0.9"
-                }
-            }
-        );
+        // Puxa o cofre de dados limpo do Npoint
+        const response = await fetch("https://api.npoint.io/90c65fc88cac67336b8c");
+        
         if (!response.ok) {
-            throw new Error(`RPGGeek responded with status ${response.status}`);
+            throw new Error(`Npoint respondeu com status ${response.status}`);
         }
         
-        const html = await response.text();
-        const rows = html.split("<tr id='row_'>");
-        const results = [];
+        const todosOsJogos = await response.json();
 
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            
-            // Extract ID and Name
-            const linkMatch = row.match(/href=["']\/rpgitem\/(\d+)\/([^"']*)["']\s+class=['"]primary['"]\s*>(.*?)<\/a>/is);
-            if (!linkMatch) continue;
-            
-            const id = linkMatch[1];
-            const slug = linkMatch[2];
-            const nome = linkMatch[3].replace(/<[^>]*>/g, '').trim();
-            
-            // Extract thumbnail image
-            const thumbTdMatch = row.match(/class=['"]collection_thumbnail['"][\s\S]*?<img[\s\S]*?src=['"]([^'"]+)['"]/is);
-            const imagem = thumbTdMatch ? thumbTdMatch[1] : "";
-            
-            // Extract Year
-            const yearMatch = row.match(/<span class=['"]smallerfont dull['"]>\((.*?)\)<\/span>/is);
-            const ano = yearMatch ? yearMatch[1] : "";
-            
-            results.push({ id, nome, slug, ano, imagem });
-        }
+        // Filtra os jogos pelo nome que o usuário digitou (ignorando maiúsculas)
+        const resultadosFiltrados = todosOsJogos.filter(jogo => 
+            jogo.nome && jogo.nome.toLowerCase().includes(query.toLowerCase())
+        );
 
-        res.json(results);
+        res.json(resultadosFiltrados);
     } catch (error) {
-        console.error("Error fetching/parsing RPGGeek:", error);
-        res.status(500).json({ error: "Erro ao buscar jogos do RPGGeek" });
+        console.error("Erro ao buscar no Npoint:", error);
+        res.status(500).json({ error: "Erro ao buscar jogos do banco." });
     }
 });
 
