@@ -402,7 +402,7 @@ const TelaUsuario = () => {
 
       // 🔥 Buscar dados frescos do servidor para garantir avatar/bio atualizados
       if (usuarioObj.id) {
-        fetch(`http://localhost:8080/usuarios/${usuarioObj.id}`)
+        fetch(`${API_URL}/usuarios/${usuarioObj.id}`)
           .then(res => res.ok ? res.json() : null)
           .then(perfilData => {
             if (!perfilData) return;
@@ -915,8 +915,8 @@ const ConteudoUsuario = () => {
             {/* Filtros Rápidos */}
             <div className="d-flex flex-wrap gap-2 mb-3 justify-content-center">
               {[
-                { label: "D&D", term: "Dungeons" },
-                { label: "Tormenta", term: "Tormenta" },
+                { label: "D&D", term: "Dungeons & Dragons 5e" },
+                { label: "Tormenta", term: "Tormenta20" },
                 { label: "Ordem", term: "Ordem Paranormal" },
                 { label: "Zombicide", term: "Zombicide" },
                 { label: "Gloomhaven", term: "Gloomhaven" },
