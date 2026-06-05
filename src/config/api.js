@@ -1,8 +1,1 @@
-const getApiUrl = () => {
-    if (typeof window !== "undefined" && window.location) {
-        return `http://${window.location.hostname}:8080`;
-    }
-    return "http://localhost:8080";
-};
-
-export const API_URL = getApiUrl();
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";

@@ -8,13 +8,21 @@ import createUserRoutes from "./src/routes/usuarioRoutes.js";
 const app = express();
 
 const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const FRONTEND_URL = process.env.FRONTEND_URL; // ex: https://rpg-connect.vercel.app
+
+function isAllowedOrigin(origin) {
+    if (!origin) return true; // same-origin requests
+    if (localOriginRegex.test(origin)) return true;
+    if (FRONTEND_URL && origin === FRONTEND_URL) return true;
+    return false;
+}
 
 // =====================================================
 // CORS para requisições HTTP normais (REST)
 // =====================================================
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || localOriginRegex.test(origin)) {
+        if (isAllowedOrigin(origin)) {
             return callback(null, true);
         }
         return callback(new Error("CORS policy violation"), false);
@@ -33,13 +41,13 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: function (origin, callback) {
-            if (!origin || localOriginRegex.test(origin)) {
+            if (isAllowedOrigin(origin)) {
                 return callback(null, true);
             }
             return callback(new Error("CORS policy violation"), false);
         },
         methods: ["GET", "POST"],
-        credentials: true       // <-- ESSENCIAL: evita o erro de CORS que você viu
+        credentials: true
     },
     transports: ["polling", "websocket"]
 });
@@ -313,7 +321,7 @@ app.get("/api/rpggeek/search", async (req, res) => {
 // =====================================================
 // INICIAR SERVIDOR
 // =====================================================
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`🚀 SERVIDOR RODANDO NA PORTA ${PORT}`);
 });
