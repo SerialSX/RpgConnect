@@ -371,9 +371,9 @@ export default function ChatPage() {
   const rolarDado = async (lados) => {
     if (!usuarioSelecionado) return;
     try {
-      const res = await fetch(`http://localhost:8081/rolar/${lados}`);
+      const res = await fetch(`${API_URL}/rolar/${lados}`);
       if (!res.ok) {
-        alert("Erro ao rolar dados no servidor auxiliar.");
+        alert("Erro ao rolar dados no servidor.");
         return;
       }
       const data = await res.json();
@@ -419,7 +419,7 @@ export default function ChatPage() {
       });
     } catch (err) {
       console.error(err);
-      alert("O servidor auxiliar de dados está offline.");
+      alert("O servidor de dados está offline.");
     }
   };
 

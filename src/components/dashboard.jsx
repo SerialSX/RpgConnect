@@ -284,7 +284,108 @@ const curiosidadesRPG = [
     }
 ];
 
+const getIconForClass = (slugOrName) => {
+    if (!slugOrName) return "swordman";
+    const key = slugOrName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    const mapping = {
+        barbarian: "barbarian",
+        barbaro: "barbarian",
+        
+        bard: "lyre",
+        bardo: "lyre",
+        
+        cleric: "holy-symbol",
+        clerigo: "holy-symbol",
+        
+        druid: "holy-oak",
+        druida: "holy-oak",
+        
+        fighter: "swordman",
+        guerreiro: "swordman",
+        
+        monk: "monk-face",
+        monge: "monk-face",
+        
+        paladin: "templar-shield",
+        paladino: "templar-shield",
+        
+        ranger: "hunting-bow",
+        patrulheiro: "hunting-bow",
+        
+        rogue: "ninja-head",
+        ladino: "ninja-head",
+        
+        sorcerer: "witch-face",
+        feiticeiro: "witch-face",
+        
+        warlock: "warlock-hood",
+        bruxo: "warlock-hood",
+        
+        wizard: "wizard-face",
+        mago: "wizard-face"
+    };
+    
+    return mapping[key] || "swordman";
+};
 
+const ClassIcon = ({ icon, color, size = "75px" }) => {
+    const [svgContent, setSvgContent] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!icon) return;
+        setLoading(true);
+        fetch(`https://api.iconify.design/game-icons/${icon}.svg`)
+            .then(res => {
+                if (res.ok) return res.text();
+                throw new Error("Icon not found");
+            })
+            .then(svgText => {
+                const processedSvg = svgText
+                    .replace(/width="[^"]*"/, `width="${size}"`)
+                    .replace(/height="[^"]*"/, `height="${size}"`);
+                setSvgContent(processedSvg);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Error loading icon:", err);
+                setSvgContent("");
+                setLoading(false);
+            });
+    }, [icon, size]);
+
+    if (loading) {
+        return (
+            <div style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="spinner-border spinner-border-sm text-light" role="status"></div>
+            </div>
+        );
+    }
+
+    if (!svgContent) {
+        return (
+            <div style={{ width: size, height: size, color: color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: size }}>shield</span>
+            </div>
+        );
+    }
+
+    return (
+        <div 
+            style={{ 
+                width: size, 
+                height: size, 
+                color: color, 
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0 8px 15px rgba(0,0,0,0.4))"
+            }} 
+            dangerouslySetInnerHTML={{ __html: svgContent }} 
+        />
+    );
+};
 
 const TelaUsuario = () => {
     const navigate = useNavigate();
@@ -323,18 +424,18 @@ const TelaUsuario = () => {
     useEffect(() => {
         const carregarDadosAuxiliares = async () => {
             try {
-                const resDica = await fetch("http://localhost:8081/dica");
+                const resDica = await fetch(`${API_URL}/dica`);
                 if (resDica.ok) {
                     const dataDica = await resDica.json();
                     setDicaRpg(dataDica.dica);
                 }
             } catch (err) {
-                console.warn("Serviço auxiliar de dicas inacessível localmente:", err.message);
-                setDicaRpg("Não foi possível carregar a dica de RPG (Serviço Auxiliar Offline).");
+                console.warn("Serviço de dicas integrado inacessível localmente:", err.message);
+                setDicaRpg("Não foi possível carregar a dica de RPG (Serviço Offline).");
             }
 
             try {
-                const resStatus = await fetch("http://localhost:8081/status");
+                const resStatus = await fetch(`${API_URL}/status`);
                 if (resStatus.ok) {
                     const dataStatus = await resStatus.json();
                     setStatusServico({
@@ -445,7 +546,7 @@ const ServicosAuxiliares = ({ dica }) => {
                 <div className="row align-items-center">
                     <div className="col-12">
                         <div className="tip-title-box">
-                            <span>🔮 Dica de RPG do Dia (Serviço Integrado)</span>
+                            <span>🔮 Dica de RPG do Dia</span>
                         </div>
                         <p className="tip-text-content">
                             {dica || "Buscando sabedoria nas runas do servidor auxiliar..."}
@@ -613,6 +714,12 @@ const ConteudoUsuario = () => {
     const [jogosFavoritos, setJogosFavoritos] = useState([]);
     const [modalAberto, setModalAberto] = useState(false);
     const [carregandoClasse, setCarregandoClasse] = useState(false);
+
+    // RPGGeek Search states
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [pesquisando, setPesquisando] = useState(false);
+    const [filtroAtivo, setFiltroAtivo] = useState("Dungeons & Dragons");
 
     const placeholderClass = {
         nome: "Invocando...",
@@ -802,6 +909,34 @@ const ConteudoUsuario = () => {
         inicializarClasse();
     }, []);
 
+    const buscarJogosGeek = async (queryToSearch) => {
+        if (!queryToSearch.trim()) return;
+        setPesquisando(true);
+        try {
+            const res = await fetch(`${API_URL}/api/rpggeek/search?q=${encodeURIComponent(queryToSearch)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSearchResults(data);
+            }
+        } catch (err) {
+            console.error("Erro ao buscar no RPGGeek:", err);
+        } finally {
+            setPesquisando(false);
+        }
+    };
+
+    useEffect(() => {
+        if (modalAberto) {
+            buscarJogosGeek(filtroAtivo);
+        }
+    }, [modalAberto, filtroAtivo]);
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setFiltroAtivo(""); // Limpa filtro ativo
+        buscarJogosGeek(searchQuery);
+    };
+
     const salvarFavoritos = (novosFavoritos) => {
         const dadosStored = localStorage.getItem("usuarioLogado");
         if (!dadosStored) return;
@@ -820,8 +955,8 @@ const ConteudoUsuario = () => {
     };
 
     const toggleJogo = (jogo) => {
-        if (jogosFavoritos.find(j => j.id === jogo.id)) {
-            salvarFavoritos(jogosFavoritos.filter(j => j.id !== jogo.id));
+        if (jogosFavoritos.find(j => String(j.id) === String(jogo.id))) {
+            salvarFavoritos(jogosFavoritos.filter(j => String(j.id) !== String(jogo.id)));
         } else {
             if (jogosFavoritos.length < 3) {
                 salvarFavoritos([...jogosFavoritos, jogo]);
@@ -848,7 +983,11 @@ const ConteudoUsuario = () => {
                                 <div className="jogos_selecionados_grid">
                                     {jogosFavoritos.map(jogo => (
                                         <div key={jogo.id} className="jogo_favorito_item">
-                                            <img src={jogo.imagem} alt={jogo.nome} />
+                                            {jogo.imagem ? (
+                                                <img src={jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover" }} />
+                                            ) : (
+                                                <div style={{ width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#342f4d", borderRadius: "8px", fontSize: "2rem" }}>🎲</div>
+                                            )}
                                             <span>{jogo.nome}</span>
                                         </div>
                                     ))}
@@ -867,26 +1006,102 @@ const ConteudoUsuario = () => {
 
             {modalAberto && (
                 <div className="modal_jogos_overlay">
-                    <div className="modal_jogos_content">
+                    <div className="modal_jogos_content" style={{ maxWidth: "600px", width: "90%" }}>
                         <h3 className="modal_titulo_roxo">Escolha seus Favoritos</h3>
-                        <p className="modal_subtitulo">Selecione até 3 jogos que você mais gosta</p>
-                        <div className="modal_jogos_grid">
-                            {LISTA_JOGOS.map(jogo => {
-                                const selecionado = jogosFavoritos.find(j => j.id === jogo.id);
-                                return (
-                                    <div
-                                        key={jogo.id}
-                                        className={`modal_jogo_card ${selecionado ? 'selecionado' : ''}`}
-                                        onClick={() => toggleJogo(jogo)}
-                                    >
-                                        <div className="check_box">{selecionado ? '✓' : ''}</div>
-                                        <img src={jogo.imagem} alt={jogo.nome} />
-                                        <span>{jogo.nome}</span>
-                                    </div>
-                                );
-                            })}
+                        <p className="modal_subtitulo">Selecione até 3 jogos de RPG de mesa físicos</p>
+                        
+                        {/* Filtros Rápidos */}
+                        <div className="d-flex flex-wrap gap-2 mb-3 justify-content-center">
+                            {[
+                                { label: "D&D", term: "Dungeons & Dragons" },
+                                { label: "Tormenta", term: "Tormenta" },
+                                { label: "Pathfinder", term: "Pathfinder" },
+                                { label: "Cyberpunk", term: "Cyberpunk" },
+                                { label: "Cthulhu", term: "Call of Cthulhu" },
+                                { label: "Vampiro", term: "Vampire The Masquerade" }
+                            ].map(filtro => (
+                                <button
+                                    key={filtro.label}
+                                    type="button"
+                                    onClick={() => setFiltroAtivo(filtro.term)}
+                                    className={`btn_editar_jogos m-0 ${filtroAtivo === filtro.term ? 'ativo' : ''}`}
+                                    style={{ 
+                                        padding: "4px 12px", 
+                                        fontSize: "0.85rem",
+                                        background: filtroAtivo === filtro.term ? "#bd83f2" : "rgba(255,255,255,0.05)",
+                                        color: filtroAtivo === filtro.term ? "#000" : "#fff",
+                                        border: filtroAtivo === filtro.term ? "1px solid #bd83f2" : "1px solid rgba(255,255,255,0.15)"
+                                    }}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
                         </div>
-                        <button className="btn_fechar_modal" onClick={() => setModalAberto(false)}>Concluir</button>
+
+                        {/* Barra de Busca */}
+                        <form onSubmit={handleSearchSubmit} className="d-flex gap-2 mb-3">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Ou digite o nome de outro RPG..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{
+                                    background: "rgba(0,0,0,0.3)",
+                                    border: "1px solid rgba(255,255,255,0.2)",
+                                    color: "#fff",
+                                    borderRadius: "8px",
+                                    padding: "8px 12px"
+                                }}
+                            />
+                            <button 
+                                type="submit" 
+                                className="btn_editar_jogos m-0"
+                                style={{ padding: "8px 16px" }}
+                            >
+                                Buscar
+                            </button>
+                        </form>
+
+                        {/* Resultados */}
+                        {pesquisando ? (
+                            <div className="text-center py-5">
+                                <div className="spinner-border text-light" role="status">
+                                    <span className="visually-hidden">Buscando...</span>
+                                </div>
+                                <p className="text-white mt-2">Buscando grimórios no RPGGeek...</p>
+                            </div>
+                        ) : searchResults.length === 0 ? (
+                            <div className="text-center py-5 text-white">
+                                Nenhum jogo de RPG de mesa encontrado. Tente outra busca!
+                            </div>
+                        ) : (
+                            <div className="modal_jogos_grid" style={{ maxHeight: "350px", overflowY: "auto", paddingRight: "5px" }}>
+                                {searchResults.map(jogo => {
+                                    const selecionado = jogosFavoritos.some(j => String(j.id) === String(jogo.id));
+                                    return (
+                                        <div
+                                            key={jogo.id}
+                                            className={`modal_jogo_card ${selecionado ? 'selecionado' : ''}`}
+                                            onClick={() => toggleJogo(jogo)}
+                                            style={{ cursor: "pointer", transition: "transform 0.2s" }}
+                                        >
+                                            <div className="check_box">{selecionado ? '✓' : ''}</div>
+                                            {jogo.imagem ? (
+                                                <img src={jogo.imagem} alt={jogo.nome} style={{ objectFit: "cover", width: "100%", height: "100px", borderRadius: "6px" }} />
+                                            ) : (
+                                                <div style={{ width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#342f4d", borderRadius: "6px", fontSize: "2rem" }}>🎲</div>
+                                            )}
+                                            <span style={{ fontSize: "0.85rem", marginTop: "8px", display: "block", textAlign: "center" }}>
+                                                {jogo.nome} {jogo.ano ? `(${jogo.ano})` : ''}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <button className="btn_fechar_modal mt-3" onClick={() => setModalAberto(false)}>Concluir</button>
                     </div>
                 </div>
             )}
@@ -920,7 +1135,7 @@ const ConteudoUsuario = () => {
                             <div className="row g-4 align-items-stretch">
                                 <div className="col-lg-4 text-center border-end-custom d-flex flex-column justify-content-center">
                                     <div className="class-icon-wrapper mb-3">
-                                        <img src={classeExibida.imagem || rpgPhoto} alt={classeExibida.nome} />
+                                        <ClassIcon icon={getIconForClass(classeExibida.slug || classeExibida.nome)} color={classeExibida.cor || "#bd83f2"} size="75px" />
                                     </div>
                                     <h2 className="class-name-title mb-2">{classeExibida.nome}</h2>
                                 </div>
