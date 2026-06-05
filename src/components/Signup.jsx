@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FiCheckSquare, FiX } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
 import logo from "../assets/icone_logo.png";
+import { API_URL } from "../config/api";
 import "../styles/signup.css";
 
 // --- Sub-componentes de Notificação ---
@@ -128,7 +129,7 @@ export default function Registro() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/usuarios/cadastro", {
+      const response = await fetch(`${API_URL}/usuarios/cadastro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

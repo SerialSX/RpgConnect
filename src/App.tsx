@@ -3,7 +3,7 @@ import Home from './components/Home';
 import Campanhas from './components/Campanhas';
 import Signup from './components/Signup';
 import Login from './components/Login';
-import Tela_usuario from './components/Tela_usuario';
+import TelaUsuario from './components/dashboard';
 import Mapa from './components/Mapa';
 import Chat from './components/Chat';
 import Perfil from './components/Perfil';
@@ -16,10 +16,11 @@ function App() {
       <GlobalNotification />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/inicio" element={<Home />} />
         <Route path="/campanhas" element={<Campanhas />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Tela_usuario />} />
+        <Route path="/dashboard" element={<TelaUsuario />} />
         <Route path="/mapa" element={<Mapa />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/perfil" element={<Perfil />} />

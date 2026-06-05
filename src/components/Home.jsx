@@ -96,9 +96,15 @@ export default function Home() {
                     </button>
 
                     <div className={`header-right ${isMobileMenuOpen ? "active" : ""}`}>
-                        <Link to="/login" className="nav-icon-link" title="Jogar">
-                            <button className="btn-join">ENTRAR NA AVENTURA</button>
-                        </Link>
+                        {usuario ? (
+                            <Link to="/dashboard" className="nav-icon-link" title="Painel do Herói">
+                                <button className="btn-join">PAINEL DO HERÓI</button>
+                            </Link>
+                        ) : (
+                            <Link to="/login" className="nav-icon-link" title="Jogar">
+                                <button className="btn-join">ENTRAR NA AVENTURA</button>
+                            </Link>
+                        )}
 
                         <Link to="/mapa" className="nav-icon-link" data-protected="true" title="Mapa">
                             <img src={iconMapa} alt="Mapa" /> <span className="nav-link-text">Mapa</span>
@@ -138,7 +144,7 @@ export default function Home() {
                                 </p>
                                 <p className="hero-description2">em novas aventuras através do maior portal de RPG. </p>
 
-                                <Link to="/signup" className="btn-explore">
+                                <Link to={usuario ? "/dashboard" : "/signup"} className="btn-explore">
                                     Começar Aventura
                                     <span className="material-symbols-outlined">arrow_forward</span>
                                 </Link>
@@ -265,7 +271,7 @@ export default function Home() {
                             A taverna está aquecida, o hidromel está gelado e sua aventura está à espera.
                             Junte-se à guilda mais prestigiada do reino.
                         </p>
-                        <Link to="/signup" className="btn-join-guild">
+                        <Link to={usuario ? "/dashboard" : "/signup"} className="btn-join-guild">
                             Entrar no Time
                         </Link>
                     </div>

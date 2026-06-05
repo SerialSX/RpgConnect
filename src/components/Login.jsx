@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLoader, FiCheckCircle, FiAlertTriangle } from "react-icons/fi"; 
 import logo from "../assets/icone_logo.png";
+import { API_URL } from "../config/api";
 import "../styles/login.css";
 import { HiCheck } from "react-icons/hi";
 
@@ -34,7 +35,7 @@ export default function Login() {
     setErro("");
 
     try {
-      const response = await fetch("http://localhost:8080/usuarios/login", {
+      const response = await fetch(`${API_URL}/usuarios/login`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -66,12 +67,14 @@ export default function Login() {
 
           // SUCESSO
           setStatus("success");
-          
           // Pega os dados que vieram do PostgreSQL
           const usuarioSalvo = data.usuario || data;
           
-          // Salva o objeto geral
+          // Salva o objeto geral e o Token
           localStorage.setItem("usuarioLogado", JSON.stringify(usuarioSalvo));
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
 
           // 🔥 Distribui os dados do banco nas chaves que o sistema lê
           // SEMPRE salva, mesmo que seja string vazia — garante consistência

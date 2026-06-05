@@ -1,0 +1,92 @@
+[
+    {
+        "remetente_id": 2,
+        "destinatario_id": 1,
+        "conteudo": "oi",
+        "timestamp": "2026-06-02T22:30:10.869Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 1,
+        "conteudo": "como esta",
+        "timestamp": "2026-06-02T22:31:04.068Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 6,
+        "conteudo": "Fala men!",
+        "timestamp": "2026-06-04T00:26:21.278Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 6,
+        "conteudo": "Teste",
+        "timestamp": "2026-06-04T00:26:48.549Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 6,
+        "conteudo": "1",
+        "timestamp": "2026-06-04T00:26:49.925Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 6,
+        "conteudo": "2",
+        "timestamp": "2026-06-04T00:26:50.397Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 6,
+        "conteudo": "3",
+        "timestamp": "2026-06-04T00:26:50.893Z"
+    },
+    {
+        "remetente_id": 6,
+        "destinatario_id": 1,
+        "conteudo": "Show!",
+        "timestamp": "2026-06-04T00:27:39.790Z"
+    },
+    {
+        "remetente_id": 6,
+        "destinatario_id": 1,
+        "conteudo": "Gostei",
+        "timestamp": "2026-06-04T00:27:42.389Z"
+    },
+    {
+        "remetente_id": 6,
+        "destinatario_id": 1,
+        "conteudo": "Falaaaa",
+        "timestamp": "2026-06-04T00:30:42.022Z"
+    },
+    {
+        "remetente_id": 6,
+        "destinatario_id": 1,
+        "conteudo": "Fala",
+        "timestamp": "2026-06-04T00:41:25.290Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 2,
+        "conteudo": "Oi",
+        "timestamp": "2026-06-04T01:05:15.928Z"
+    },
+    {
+        "remetente_id": 1,
+        "destinatario_id": 2,
+        "conteudo": "Quem é você?",
+        "timestamp": "2026-06-04T01:05:21.976Z"
+    },
+    {
+        "remetente_id": 3,
+        "destinatario_id": 6,
+        "conteudo": "Falaa meu principe",
+        "timestamp": "2026-06-04T01:07:03.249Z"
+    },
+    {
+        "remetente_id": 4,
+        "destinatario_id": 6,
+        "conteudo": "Olá",
+        "timestamp": "2026-06-04T01:32:39.904Z"
+    }
+]

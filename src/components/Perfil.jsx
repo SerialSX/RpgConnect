@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { API_URL } from '../config/api';
 import '../styles/perfil.css'; 
 
 import logo from "../assets/icone_logo.png";
@@ -114,10 +115,13 @@ export default function Perfil() {
         };
         localStorage.setItem("usuarioLogado", JSON.stringify(usuarioAtualizado));
 
-        // 🔥 NOVA PARTE: Sincronizar com o Servidor para que outros usuários vejam!
-        fetch("http://localhost:8080/usuarios/perfil-update", {
+        const token = localStorage.getItem("token");
+        fetch(`${API_URL}/usuarios/perfil-update`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          },
           body: JSON.stringify({
             id: usuarioObj.id,
             nome: nome,
@@ -126,16 +130,24 @@ export default function Perfil() {
             avatar: avatar // 🔥 Enviar a foto para o servidor
           })
         }).then(res => {
-            if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
-            return res.json();
-          })
+          if (res.status === 401) {
+            localStorage.removeItem("usuarioLogado");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+            throw new Error("Não autorizado");
+          }
+          if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
+          return res.json();
+        })
           .then(data => {
             console.log("✅ Sincronizado com o servidor:", data);
             exibirAlerta('Alterações salvas com sucesso!', 'success');
           })
           .catch(err => {
             console.error("❌ Erro ao sincronizar com servidor:", err);
-            exibirAlerta('Salvo localmente, mas falhou ao sincronizar com o servidor.', 'danger');
+            if (err.message !== "Não autorizado") {
+                exibirAlerta('Salvo localmente, mas falhou ao sincronizar com o servidor.', 'danger');
+            }
           });
 
       } catch (err) {

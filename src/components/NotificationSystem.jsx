@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "../config/api";
 import "../styles/notification_system.css";
 
 // Assets
@@ -29,7 +30,7 @@ const NotificationSystem = () => {
   useEffect(() => {
     if (!usuarioObj?.id) return;
 
-    const socket = io("http://localhost:8080", {
+    const socket = io(API_URL, {
       withCredentials: true,
       transports: ["polling", "websocket"]
     });
@@ -65,10 +66,25 @@ const NotificationSystem = () => {
     const checkUnread = async () => {
       if (!usuarioObj?.id) return;
       try {
-        const response = await fetch(`http://localhost:8080/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`);
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_URL}/usuarios/usuarios-online?usuarioId=${usuarioObj.id}`, {
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          }
+        });
+        if (response.status === 401) {
+          console.warn("Sessão expirada (401). Redirecionando para login...");
+          localStorage.removeItem("usuarioLogado");
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          return;
+        }
+        
+        if (!response.ok) return;
+        
         const usuarios = await response.json();
+        if (!Array.isArray(usuarios)) return;
         const ultimaVisita = localStorage.getItem(`ultima_visita_chat_${usuarioObj.id}`) || 0;
-        const chatHistory = JSON.parse(localStorage.getItem(`chat_history_${usuarioObj.id}`) || "{}");
         
         const novas = usuarios
           .filter(u => {
@@ -80,7 +96,8 @@ const NotificationSystem = () => {
             
             // 2. SOLUÇÃO FORÇADA E ABSOLUTA P/ MENSAGENS PRÓPRIAS FANTASMAS
             // A API não diz quem é o remetente da última mensagem, então validamos no histórico local
-            const history = chatHistory[u.id] || [];
+            const history = JSON.parse(localStorage.getItem(`chat_history_${usuarioObj.id}_${u.id}`) || "[]");
+            
             if (history.length > 0) {
               const lastMsgLocal = history[history.length - 1];
               // Se nós fomos os remetentes da última mensagem local:

@@ -7,11 +7,18 @@ import createUserRoutes from "./src/routes/usuarioRoutes.js";
 
 const app = express();
 
+const localOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
 // =====================================================
 // CORS para requisições HTTP normais (REST)
 // =====================================================
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+        if (!origin || localOriginRegex.test(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("CORS policy violation"), false);
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
@@ -25,7 +32,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: function (origin, callback) {
+            if (!origin || localOriginRegex.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("CORS policy violation"), false);
+        },
         methods: ["GET", "POST"],
         credentials: true       // <-- ESSENCIAL: evita o erro de CORS que você viu
     },
@@ -38,29 +50,22 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log(`✅ Usuário conectado: ${socket.id}`);
 
-    // Cada usuário entra numa "sala" com seu próprio ID
     socket.on("join", (userId) => {
         socket.join(String(userId));
         console.log(`👤 Usuário ${userId} entrou na sala.`);
     });
 
-    // Recebe mensagem do remetente, salva no banco e reencaminha ao destinatário
     socket.on("enviar_mensagem", async (data) => {
         try {
             const { remetenteId, destinatarioId, conteudo, timestamp } = data;
-            // Adiciona um ID único na mensagem se não vier do frontend
-            data.id = data.id || crypto.randomUUID();
 
-            // Salva a mensagem no banco de dados PostgreSQL
             await db.query(
                 `INSERT INTO mensagens (remetente_id, destinatario_id, conteudo, timestamp)
-         VALUES ($1, $2, $3, $4)`,
+                 VALUES ($1, $2, $3, $4)`,
                 [remetenteId, destinatarioId, conteudo, timestamp || new Date().toISOString()]
             );
 
-            // Envia a mensagem para a sala do destinatário e do rementente (para manter abas sincronizadas)
             io.to(String(destinatarioId)).emit("receber_mensagem", data);
-            io.to(String(remetenteId)).emit("receber_mensagem", data);
 
             console.log(`📩 Mensagem de ${remetenteId} → ${destinatarioId}: ${conteudo}`);
         } catch (err) {
@@ -92,9 +97,33 @@ app.use("/usuarios", createUserRoutes(io));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // =====================================================
+// BATIMENTO CARDÍACO DE INTEGRAÇÃO (Ping para o RpgConnect-Auxiliar)
+// =====================================================
+const enviarPingAuxiliar = async () => {
+    try {
+        const response = await fetch("http://localhost:8081/ping", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: "Online" })
+        });
+        if (response.ok) {
+            console.log("📡 Ping de integração enviado com sucesso para o RpgConnect-Auxiliar.");
+        }
+    } catch (err) {
+        console.warn("⚠️ Não foi possível comunicar com o RpgConnect-Auxiliar (Serviço Auxiliar desligado).");
+    }
+};
+
+// =====================================================
 // INICIAR SERVIDOR
 // =====================================================
 const PORT = 8080;
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, () => {
     console.log(`🚀 SERVIDOR RODANDO NA PORTA ${PORT}`);
+    
+    // Envia o primeiro ping e agenda os próximos a cada 30 segundos
+    enviarPingAuxiliar();
+    setInterval(enviarPingAuxiliar, 30000);
 });
