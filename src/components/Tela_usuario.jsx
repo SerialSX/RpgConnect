@@ -5,33 +5,65 @@ import { getLevelInfo, addXP, claimUniqueBonus } from "../js/xp";
 import "../styles/tela_usuario.css";
 
 import logo from "../assets/icone_logo.png";
-import iconInicio from "../assets/icone_botao_inicio.png";
 import iconMapa from "../assets/icone_mapa.png";
 import iconChat from "../assets/chat_icon.png";
 import iconPerfil from "../assets/icone_perfil.png";
 import iconDices from "../assets/dices_icon.png";
 import plusIcon from "../assets/plus.png";
-import swordShield from "../assets/sword_shield.png";
 import logoutIcon from "../assets/logout.png";
-import iconeNotificacao from "../assets/notificacao.png";
 import NotificationSystem from "./NotificationSystem";
-import magicPhoto from "../assets/magic_character_photo.png";
 import adventurePhoto from "../assets/adventure.png";
 import rpgPhoto from "../assets/rpg_photo.png";
-import treasurePhoto from "../assets/treasure_chest_photo.png";
 import bookPhoto from "../assets/book.png";
+import iconePaladino from "../assets/icone_paladino.png";
+import iconeBarbaro from "../assets/icone_barbaro.png";
+import iconeMago from "../assets/icone_mago.png";
+import iconeExplorador from "../assets/icone_explorador.png";
+import iconeMestreArmas from "../assets/icone_Mestre_de_Armas.png";
+import iconeGuardiaoTesouro from "../assets/icone_Guardião.png";
+import iconeEscribaMistico from "../assets/icone_Escriba_Místico.png";
+import iconeSombraCarmesim from "../assets/icone_Sombra_Carmesim.png";
+import iconeArquimago from "../assets/icone_Arquimago.png";
+import iconeSentinela from "../assets/icone_Sentinela.png";
 
 import catanImg from "../assets/catan_1.png";
 import ddImg from "../assets/dungeons_and_dragons_1.png";
 import ttrImg from "../assets/ticket_to_ride_1.png";
 import warImg from "../assets/war_1.png";
+import mansionImg from "../assets/mansion_madness.png";
+import gloomhavenImg from "../assets/gloomhaven.png";
+import heroquestImg from "../assets/heroquest.png";
+import descentImg from "../assets/descent.png";
+import tormentaImg from "../assets/tormenta.png";
+import vampiroImg from "../assets/vampiro.png";
+import arkhamImg from "../assets/arkham_horror.png";
+import betrayalImg from "../assets/betrayal.png";
+import bloodrageImg from "../assets/blood_rage.png";
+import miceImg from "../assets/mice_and_mystics.png";
+import paranormalImg from "../assets/paranormal.png";
+import zombicideImg from "../assets/zombicide.png";
 
-const LISTA_JOGOS = [
-  { id: "catan", nome: "Catan", imagem: catanImg },
-  { id: "dd", nome: "D&D", imagem: ddImg },
-  { id: "ttr", nome: "Ticket to Ride", imagem: ttrImg },
-  { id: "war", nome: "War", imagem: warImg },
-];
+// Dicionário para transformar os textos da API nas imagens da tua pasta assets
+const MAPA_IMAGENS = {
+  catanImg: catanImg,
+  ddImg: ddImg,
+  ttrImg: ttrImg,
+  warImg: warImg,
+  rpgPhoto: paranormalImg ,
+  adventurePhoto: zombicideImg,
+  mansionImg: mansionImg,
+  gloomhavenImg: gloomhavenImg,
+  heroquestImg: heroquestImg,
+  descentImg: descentImg,
+  tormentaImg: tormentaImg,
+  vampiroImg: vampiroImg,
+  arkhamImg: arkhamImg,
+  betrayalImg: betrayalImg,
+  bloodrageImg: bloodrageImg,
+  miceImg: miceImg,
+  paranormalImg: paranormalImg,
+  zombicideImg: zombicideImg
+};
 
 import {
   AlertDialog,
@@ -49,7 +81,7 @@ const classesRPG = [
   {
     nome: "Paladino",
     descricao: "Um guerreiro sagrado que utiliza a fé para proteger seus aliados.",
-    imagem: swordShield,
+    imagem: iconePaladino,
     cor: "#ffd700",
     stats: { for: 85, int: 40, agi: 30, vit: 90 },
     skills: ["Escudo Divino", "Golpe Radiante"]
@@ -57,7 +89,7 @@ const classesRPG = [
   {
     nome: "Mago Arcano",
     descricao: "Mestre das energias místicas, capaz de dobrar a realidade.",
-    imagem: magicPhoto,
+    imagem: iconeMago,
     cor: "#a345f5",
     stats: { for: 20, int: 95, agi: 40, vit: 35 },
     skills: ["Chuva de Meteoros", "Teletransporte"]
@@ -65,7 +97,7 @@ const classesRPG = [
   {
     nome: "Explorador",
     descricao: "Vanguardista que desbrava terras desconhecidas em busca de glória.",
-    imagem: adventurePhoto,
+    imagem: iconeExplorador,
     cor: "#2ecc71",
     stats: { for: 55, int: 60, agi: 85, vit: 70 },
     skills: ["Sexto Sentido", "Mestre de Terreno"]
@@ -73,7 +105,7 @@ const classesRPG = [
   {
     nome: "Mestre de Armas",
     descricao: "Um veterano de mil batalhas que domina qualquer lâmina.",
-    imagem: rpgPhoto,
+    imagem: iconeMestreArmas,
     cor: "#e74c3c",
     stats: { for: 90, int: 30, agi: 65, vit: 80 },
     skills: ["Corte Preciso", "Contra-Ataque"]
@@ -81,7 +113,7 @@ const classesRPG = [
   {
     nome: "Guardião do Tesouro",
     descricao: "Protetor das relíquias mais raras, ninguém passa pelo seu escudo.",
-    imagem: treasurePhoto,
+    imagem: iconeGuardiaoTesouro,
     cor: "#f1c40f",
     stats: { for: 70, int: 50, agi: 35, vit: 95 },
     skills: ["Muralha de Ferro", "Olhar da Ganância"]
@@ -89,7 +121,7 @@ const classesRPG = [
   {
     nome: "Escriba Místico",
     descricao: "Conhecedor de rituais antigos e segredos que o tempo esqueceu.",
-    imagem: bookPhoto,
+    imagem: iconeEscribaMistico,
     cor: "#3498db",
     stats: { for: 15, int: 98, agi: 30, vit: 40 },
     skills: ["Glifo de Proteção", "Invocação de Saber"]
@@ -97,7 +129,7 @@ const classesRPG = [
   {
     nome: "Sombra Carmesim",
     descricao: "Especialista em infiltração que ataca de onde menos se espera.",
-    imagem: iconPerfil,
+    imagem: iconeSombraCarmesim,
     cor: "#4a4a4a",
     stats: { for: 45, int: 50, agi: 95, vit: 40 },
     skills: ["Passo das Sombras", "Ataque Crítico"]
@@ -105,7 +137,7 @@ const classesRPG = [
   {
     nome: "Berserker Furioso",
     descricao: "Alimentado pela fúria, ignora a dor para destruir seus inimigos.",
-    imagem: iconInicio,
+    imagem: iconeBarbaro,
     cor: "#ff4d4d",
     stats: { for: 95, int: 10, agi: 60, vit: 75 },
     skills: ["Grito de Guerra", "Fúria Incontrolável"]
@@ -113,7 +145,7 @@ const classesRPG = [
   {
     nome: "Arquimago",
     descricao: "A forma definitiva do conhecimento místico e poder elemental.",
-    imagem: iconDices,
+    imagem: iconeArquimago,
     cor: "#8e44ad",
     stats: { for: 25, int: 99, agi: 45, vit: 40 },
     skills: ["Buraco Negro", "Singularidade"]
@@ -121,7 +153,7 @@ const classesRPG = [
   {
     nome: "Sentinela",
     descricao: "Atirador de elite que vigia as fronteiras do reino com olhos de águia.",
-    imagem: logo,
+    imagem: iconeSentinela,
     cor: "#16a085",
     stats: { for: 40, int: 35, agi: 92, vit: 55 },
     skills: ["Olho de Rapina", "Tiro Perfurante"]
@@ -165,6 +197,8 @@ const getDeterministicClass = (nome, email, id) => {
 const TelaUsuario = () => {
   const navigate = useNavigate();
 
+  const [nomeParaExibir, setNomeParaExibir] = useState("Aventureiro");
+  const [avatarParaExibir, setAvatarParaExibir] = useState(null);
 
   const handleLogout = () => {
     localStorage.removeItem("usuarioLogado");
@@ -172,25 +206,57 @@ const TelaUsuario = () => {
     navigate("/");
   };
 
-  const dadosStored = localStorage.getItem("usuarioLogado");
-  let nomeParaExibir = "Aventureiro";
-  let avatarParaExibir = null;
+  // Carrega dados do localStorage primeiro (rápido)
+  useEffect(() => {
+    const dadosStored = localStorage.getItem("usuarioLogado");
+    if (!dadosStored) return;
 
-  if (dadosStored) {
     try {
       const usuarioObj = JSON.parse(dadosStored);
-      nomeParaExibir = (usuarioObj.nome || "Aventureiro").replace(/[0-9]/g, "");
       const email = usuarioObj.email || "anon";
-      avatarParaExibir = localStorage.getItem(`avatar_${email}`) ||
+
+      const nomeSalvo = localStorage.getItem(`nome_${email}`) || usuarioObj.nome || "Aventureiro";
+      setNomeParaExibir(nomeSalvo.replace(/[0-9]/g, ""));
+
+      const avatarSalvo = localStorage.getItem(`avatar_${email}`) ||
         usuarioObj.avatar ||
         usuarioObj.foto ||
         usuarioObj.img ||
         usuarioObj.profile_image ||
         usuarioObj.photoURL;
+      
+      if (avatarSalvo) setAvatarParaExibir(avatarSalvo);
+
+      // 🔥 Buscar dados frescos do servidor para garantir avatar/bio atualizados
+      if (usuarioObj.id) {
+        fetch(`http://localhost:8080/usuarios/${usuarioObj.id}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(perfilData => {
+            if (!perfilData) return;
+
+            // Atualizar localStorage com dados do banco
+            if (perfilData.avatar) {
+              localStorage.setItem(`avatar_${email}`, perfilData.avatar);
+              setAvatarParaExibir(perfilData.avatar);
+            }
+            if (perfilData.nome) {
+              localStorage.setItem(`nome_${email}`, perfilData.nome);
+              setNomeParaExibir(perfilData.nome.replace(/[0-9]/g, ""));
+            }
+            if (perfilData.bio) localStorage.setItem(`bio_${email}`, perfilData.bio);
+            if (perfilData.jogos) localStorage.setItem(`jogos_${email}`, perfilData.jogos);
+
+            // Sincronizar objeto central
+            const dadosAtuais = JSON.parse(localStorage.getItem("usuarioLogado") || "{}");
+            const dadosCompletos = { ...dadosAtuais, ...perfilData };
+            localStorage.setItem("usuarioLogado", JSON.stringify(dadosCompletos));
+          })
+          .catch(err => console.warn("Aviso: não foi possível sincronizar perfil:", err));
+      }
     } catch (error) {
       console.error("Erro ao processar dados do usuário:", error);
     }
-  }
+  }, []);
 
   const [levelInfo, setLevelInfo] = useState(getLevelInfo());
 
@@ -315,8 +381,17 @@ const ConteudoUsuario = ({ levelInfo }) => {
   const [classe, setClasse] = useState(null);
   const [jogosFavoritos, setJogosFavoritos] = useState([]);
   const [modalAberto, setModalAberto] = useState(false);
+  
+  // 🔥 ESTADO NOVO: Guarda os jogos da API
+  const [listaDeJogosApi, setListaDeJogosApi] = useState([]);
 
   useEffect(() => {
+    // 🔥 O FETCH DA API (Substitui o link pelo que tu copiou do npoint!)
+    fetch("https://api.npoint.io/a9a6b56fdbf1a5b7adcc")
+      .then(res => res.json())
+      .then(dados => setListaDeJogosApi(dados))
+      .catch(err => console.error("Erro na API:", err));
+
     const dadosStored = localStorage.getItem("usuarioLogado");
     if (!dadosStored) return;
     try {
@@ -336,7 +411,13 @@ const ConteudoUsuario = ({ levelInfo }) => {
           localStorage.setItem(chaveClasse, JSON.stringify(classeIdeal));
           setClasse(classeIdeal);
         } else {
-          setClasse(parsedClass);
+          // 🔥 Sempre usar a imagem fresca do import, nunca a URL cacheada no localStorage
+          const classeAtual = classesRPG.find(c => c.nome === parsedClass.nome);
+          const classeComImagemAtualizada = {
+            ...parsedClass,
+            imagem: classeAtual ? classeAtual.imagem : parsedClass.imagem
+          };
+          setClasse(classeComImagemAtualizada);
         }
       }
 
@@ -433,7 +514,7 @@ const ConteudoUsuario = ({ levelInfo }) => {
             <h3 className="modal_titulo_roxo">Escolha seus Favoritos</h3>
             <p className="modal_subtitulo">Selecione até 3 jogos que você mais gosta</p>
             <div className="modal_jogos_grid">
-              {LISTA_JOGOS.map(jogo => {
+              {listaDeJogosApi.map(jogo => {
                 const selecionado = jogosFavoritos.find(j => j.id === jogo.id);
                 return (
                   <div
@@ -442,7 +523,7 @@ const ConteudoUsuario = ({ levelInfo }) => {
                     onClick={() => toggleJogo(jogo)}
                   >
                     <div className="check_box">{selecionado ? '✓' : ''}</div>
-                    <img src={jogo.imagem} alt={jogo.nome} />
+                    <img src={MAPA_IMAGENS[jogo.imagem] || plusIcon} alt={jogo.nome} />
                     <span>{jogo.nome}</span>
                   </div>
                 );

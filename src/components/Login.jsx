@@ -47,21 +47,58 @@ export default function Login() {
 
       const contentType = response.headers.get("content-type");
 
-      // Adicionamos um delay de 3 segundos (3000ms) para o loading ficar visível
+      // Parsear o JSON IMEDIATAMENTE (antes do setTimeout)
+      let data = null;
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      }
+
+      // Delay visual de 3 segundos para o loading ficar visível
       setTimeout(async () => {
         
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const data = await response.json();
+        if (data !== null) {
           
           if (!response.ok) {
-            setErro(data.message || "Credenciais inválidas.");
+            setErro(data.message || data.error || "Credenciais inválidas.");
             setStatus("idle");
             return;
           }
 
           // SUCESSO
           setStatus("success");
-          localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario || data));
+          
+          // Pega os dados que vieram do PostgreSQL
+          const usuarioSalvo = data.usuario || data;
+          
+          // Salva o objeto geral
+          localStorage.setItem("usuarioLogado", JSON.stringify(usuarioSalvo));
+
+          // 🔥 Distribui os dados do banco nas chaves que o sistema lê
+          // SEMPRE salva, mesmo que seja string vazia — garante consistência
+          const email = usuarioSalvo.email || "anon";
+          localStorage.setItem(`nome_${email}`, usuarioSalvo.nome || "");
+          localStorage.setItem(`bio_${email}`, usuarioSalvo.bio || "");
+          localStorage.setItem(`jogos_${email}`, usuarioSalvo.jogos || "");
+          localStorage.setItem(`avatar_${email}`, usuarioSalvo.avatar || "");
+
+          // 🔥 Buscar dados completos do servidor para garantir avatar/bio atualizados
+          if (usuarioSalvo.id) {
+            try {
+              const perfilRes = await fetch(`http://localhost:8080/usuarios/${usuarioSalvo.id}`);
+              if (perfilRes.ok) {
+                const perfilData = await perfilRes.json();
+                // Atualizar localStorage com dados frescos do banco
+                const dadosCompletos = { ...usuarioSalvo, ...perfilData };
+                localStorage.setItem("usuarioLogado", JSON.stringify(dadosCompletos));
+                if (perfilData.nome) localStorage.setItem(`nome_${email}`, perfilData.nome);
+                if (perfilData.bio) localStorage.setItem(`bio_${email}`, perfilData.bio);
+                if (perfilData.jogos) localStorage.setItem(`jogos_${email}`, perfilData.jogos);
+                if (perfilData.avatar) localStorage.setItem(`avatar_${email}`, perfilData.avatar);
+              }
+            } catch (err) {
+              console.warn("Aviso: não foi possível buscar perfil completo:", err);
+            }
+          }
 
           // Tempo para exibir a mensagem de "Logado com sucesso!"
           setTimeout(() => {

@@ -25,23 +25,44 @@ export default function Perfil() {
     if (dadosStored) {
       try {
         const usuarioObj = JSON.parse(dadosStored);
-        const email = usuarioObj.email || "anon"; // Usar o mesmo fallback "anon" do Dashboard
+        const email = usuarioObj.email || "anon";
         setUsuarioEmail(email);
         
-        // Sincronizar busca de nome
+        // Carregar do localStorage primeiro (rápido)
         const savedNome = localStorage.getItem(`nome_${email}`);
         setNome(savedNome || usuarioObj.nome || "Aventureiro");
         
         const savedBio = localStorage.getItem(`bio_${email}`);
-        setBio(savedBio || "");
+        setBio(savedBio || usuarioObj.bio || "");
         
         const savedJogos = localStorage.getItem(`jogos_${email}`);
-        setJogos(savedJogos || "");
+        setJogos(savedJogos || usuarioObj.jogos || "");
         
-        // Busca agressiva pelo avatar - Mesma lógica que funcionou no Dashboard
         const savedAvatar = localStorage.getItem(`avatar_${email}`);
         const avatarUrl = savedAvatar || usuarioObj.avatar || usuarioObj.foto || usuarioObj.img || usuarioObj.profile_image || usuarioObj.photoURL;
         setAvatar(avatarUrl || null);
+
+        // 🔥 Buscar dados frescos do servidor para sincronizar
+        if (usuarioObj.id) {
+          fetch(`http://localhost:8080/usuarios/${usuarioObj.id}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(perfilData => {
+              if (!perfilData) return;
+
+              // Só sobrescreve se o servidor tiver dados mais completos
+              if (perfilData.nome && !savedNome) setNome(perfilData.nome);
+              if (perfilData.bio && !savedBio) setBio(perfilData.bio);
+              if (perfilData.jogos && !savedJogos) setJogos(perfilData.jogos);
+              if (perfilData.avatar && !savedAvatar) {
+                setAvatar(perfilData.avatar);
+                localStorage.setItem(`avatar_${email}`, perfilData.avatar);
+              }
+              if (perfilData.nome && !savedNome) localStorage.setItem(`nome_${email}`, perfilData.nome);
+              if (perfilData.bio && !savedBio) localStorage.setItem(`bio_${email}`, perfilData.bio);
+              if (perfilData.jogos && !savedJogos) localStorage.setItem(`jogos_${email}`, perfilData.jogos);
+            })
+            .catch(err => console.warn("Aviso: não foi possível buscar perfil do servidor:", err));
+        }
         
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
@@ -104,16 +125,24 @@ export default function Perfil() {
             jogos: jogos,
             avatar: avatar // 🔥 Enviar a foto para o servidor
           })
-        }).then(res => res.json())
-          .then(data => console.log("✅ Sincronizado com o servidor:", data))
-          .catch(err => console.error("❌ Erro ao sincronizar com servidor:", err));
+        }).then(res => {
+            if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            console.log("✅ Sincronizado com o servidor:", data);
+            exibirAlerta('Alterações salvas com sucesso!', 'success');
+          })
+          .catch(err => {
+            console.error("❌ Erro ao sincronizar com servidor:", err);
+            exibirAlerta('Salvo localmente, mas falhou ao sincronizar com o servidor.', 'danger');
+          });
 
       } catch (err) {
         console.error("Erro ao sincronizar usuarioLogado:", err);
+        exibirAlerta('Erro ao salvar perfil.', 'danger');
       }
     }
-
-    exibirAlerta('Alterações salvas com sucesso!', 'success');
   };
 
   const autoResize = (e) => {
