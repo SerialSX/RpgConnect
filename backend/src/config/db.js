@@ -6,14 +6,22 @@ import { fileURLToPath } from "url";
 
 const { Pool } = pkg;
 
-const pool = new Pool({
-    user: process.env.DB_USER || "postgres",
-    host: process.env.DB_HOST || "localhost",
-    database: process.env.DB_NAME || "RPG",
-    password: process.env.DB_PASSWORD || "teste",
-    port: parseInt(process.env.DB_PORT || "5432", 10),
-    connectionTimeoutMillis: 2000,
-});
+const isProduction = !!process.env.DATABASE_URL;
+
+const pool = isProduction
+    ? new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 5000,
+    })
+    : new Pool({
+        user: process.env.DB_USER || "postgres",
+        host: process.env.DB_HOST || "localhost",
+        database: process.env.DB_NAME || "RPG",
+        password: process.env.DB_PASSWORD || "teste",
+        port: parseInt(process.env.DB_PORT || "5432", 10),
+        connectionTimeoutMillis: 2000,
+    });
 
 pool.on('error', (err) => {
     console.error('Unexpected error on idle pg client:', err.message);
